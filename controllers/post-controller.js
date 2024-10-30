@@ -53,3 +53,17 @@ export const editPost = (req, res) => {
     return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
   }
 }
+
+export const deletePost = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const posts = readPostsFromFile()
+
+  const postIndex = posts.findIndex((post) => post.post_id === postId)
+  if (postIndex === -1) {
+    return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' })
+  }
+
+  posts.splice(postIndex, 1)
+  writePostsToFile(posts)
+  res.status(200).json({ message: '게시글 삭제 성공!' })
+}
