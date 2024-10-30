@@ -33,6 +33,34 @@ export const loginUser = (req, res) => {
   }
 }
 
+export const patchUserName = (req, res) => {
+  const { email, nickname } = req.body
+  const users = readUsersFromFile()
+
+  const user = users.find((user) => user.user_email === email)
+  if (user) {
+    user.user_name = nickname
+    writeUsersToFile(users)
+    res.status(200).json({ message: '닉네임 업데이트 성공 야호야호' })
+  } else {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+  }
+}
+
+export const patchUserPw = (req, res) => {
+  const { email, password } = req.body
+  const users = readUsersFromFile()
+
+  const user = users.find((user) => user.user_email === email)
+  if (user) {
+    user.user_pw = password
+    writeUsersToFile(users)
+    res.status(200).json({ message: '비밀번호 업데이트 성공 야호야호야호!' })
+  } else {
+    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+  }
+}
+
 export const deleteUser = (req, res) => {
   const { email } = req.body
   const users = readUsersFromFile()
