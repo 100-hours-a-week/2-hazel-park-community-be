@@ -1,9 +1,14 @@
 import express from 'express'
-import { uploadPost, showPosts } from '../controllers/post-controller.js'
+import {
+  uploadPost,
+  posts,
+  postDetail,
+} from '../controllers/post-controller.js'
 
 const router = express.Router()
 
 router.post('/upload', uploadPost)
-router.get('/', showPosts)
+router.get('/', posts)
+router.get('/postDetail/:postId', postDetail)
 
 export default router

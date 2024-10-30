@@ -24,7 +24,15 @@ export const uploadPost = (req, res) => {
   res.status(201).json({ message: '글을 업로드햇어yo' })
 }
 
-export const showPosts = (req, res) => {
+export const posts = (req, res) => {
   const posts = readPostsFromFile()
   res.send(posts)
+}
+
+export const postDetail = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const posts = readPostsFromFile()
+
+  const post = posts.find((post) => post.post_id === postId)
+  res.send(post)
 }
