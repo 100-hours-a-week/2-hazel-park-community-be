@@ -23,3 +23,8 @@ export const uploadPost = (req, res) => {
   writePostsToFile(posts)
   res.status(201).json({ message: '글을 업로드햇어yo' })
 }
+
+export const showPosts = (req, res) => {
+  const posts = readPostsFromFile()
+  res.send(posts)
+}
