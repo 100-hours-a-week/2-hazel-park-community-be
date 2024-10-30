@@ -36,3 +36,20 @@ export const postDetail = (req, res) => {
   const post = posts.find((post) => post.post_id === postId)
   res.send(post)
 }
+
+export const editPost = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const { title, content } = req.body
+  const posts = readPostsFromFile()
+
+  const post = posts.find((post) => post.post_id === postId)
+  if (post) {
+    post.post_title = title
+    post.post_contents = content
+  } else {
+    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+  }
+
+  writePostsToFile(posts)
+  res.status(200).json({ message: '게시글 수정 성공 야호야호' })
+}

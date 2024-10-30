@@ -3,12 +3,14 @@ import {
   uploadPost,
   posts,
   postDetail,
+  editPost,
 } from '../controllers/post-controller.js'
 
 const router = express.Router()
 
-router.post('/upload', uploadPost)
+router.post('/', uploadPost)
 router.get('/', posts)
-router.get('/postDetail/:postId', postDetail)
+router.get('/:postId', postDetail)
+router.patch('/:postId', editPost)
 
 export default router
