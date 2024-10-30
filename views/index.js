@@ -2,6 +2,8 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import userRoutes from '../routes/user-route.js'
+import postRoutes from '../routes/post-route.js'
+import commentRoutes from '../routes/comment-route.js'
 
 const app = express()
 const PORT = 3000
@@ -17,6 +19,8 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 app.use('/api/users', userRoutes)
+app.use('/api/posts', postRoutes)
+app.use('/api/comments', commentRoutes)
 
 app.listen(PORT, () => {
   console.log(`server is running at ${PORT}`)
