@@ -5,6 +5,7 @@ import {
   postDetail,
   editPost,
   deletePost,
+  updateLikes,
 } from '../controllers/post-controller.js'
 
 const router = express.Router()
@@ -14,5 +15,6 @@ router.get('/', posts)
 router.get('/:postId', postDetail)
 router.patch('/:postId', editPost)
 router.delete('/:postId', deletePost)
+router.patch('/likes/:postId', updateLikes)
 
 export default router
