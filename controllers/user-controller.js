@@ -1,4 +1,5 @@
 import { readUsersFromFile, writeUsersToFile } from './user-json-controller.js'
+import bcrypt from 'bcrypt'
 
 export const registerUser = (req, res) => {
   const { email, password, nickname } = req.body
@@ -15,9 +16,11 @@ export const registerUser = (req, res) => {
     }
   }
 
+  const hashedPw = bcrypt.hashSync(password, 10)
+
   const newUser = {
     user_email: email,
-    user_pw: password,
+    user_pw: hashedPw,
     user_name: nickname,
   }
   users.push(newUser)
