@@ -16,13 +16,34 @@ export const comments = (req, res) => {
   }
 }
 
+export const uploadComment = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const { writer, updatedAt, content } = req.body
+  const comments = readCommentsFromFile()
+
+  const postComments = comments.comments[postId] || []
+  const lastComment = postComments[postComments.length - 1]
+  const commentId = lastComment ? lastComment.id + 1 : 1
+
+  const newComment = {
+    id: commentId,
+    writer: writer,
+    updateAt: updatedAt,
+    content: content,
+  }
+
+  postComments.push(newComment)
+  comments.comments[postId] = postComments
+  writeCommentsToFile(comments)
+  res.status(200).json({ message: '댓글 등록 성공 야호야호' })
+}
+
 export const editComment = (req, res) => {
   const commentId = parseInt(req.params.commentId)
   const { postId, content, updatedAt } = req.body
   const comments = readCommentsFromFile()
 
   const postComments = comments.comments[postId]
-  console.log(postComments + ',' + parseInt(postId))
 
   if (!postComments) {
     return res
@@ -39,4 +60,30 @@ export const editComment = (req, res) => {
   } else {
     return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
   }
+}
+
+export const deleteCommtent = (req, res) => {
+  const commentId = parseInt(req.params.commentId)
+  const { postId } = req.body
+  const comments = readCommentsFromFile()
+
+  const postComments = comments.comments[postId]
+
+  if (!postComments) {
+    return res
+      .status(404)
+      .json({ message: '해당 포스트의 댓들이 존재하지 않습니다.' })
+  }
+
+  const commentIndex = postComments.findIndex(
+    (comment) => comment.id === commentId,
+  )
+  if (commentIndex === -1) {
+    return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
+  }
+
+  postComments.splice(commentIndex, 1)
+  comments.comments[postId] = postComments
+  writeCommentsToFile(comments)
+  res.status(200).json({ message: '댓글 삭제 성공 야호야호' })
 }
