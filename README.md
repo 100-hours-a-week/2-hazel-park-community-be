@@ -2,9 +2,7 @@
 
 ## 🛠️ Stack
 
-![HTML](https://img.shields.io/badge/HTML-E34F26?style=flat&logo=html5&logoColor=white)
-![CSS](https://img.shields.io/badge/CSS-1572B6?style=flat&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Express](https://img.shields.io/badge/Express-4B8BBE?style=flat&logo=express&logoColor=white)
 
 <br />
 
@@ -21,8 +19,9 @@
 <br />
 
 ## ✍🏻 회고
-Vanila HTML, CSS, JavsScipt로 CRUD를 구현하며 놓치고 있던 기초 지식들을 다시금 확인할 수 있었다. <br />
 
-평소 리액트를 사용하다보니 컴포넌트에 익숙해져서 어디든 컴포넌트를 만들어서 사용하고 싶은 생각이 든다. 이번 과제를 통해 HTML에서도 Web Component를 통해 컴포넌트를 사용할 수 있다는 점을 알았다. <br />
+MVC 패턴을 적용해서 백엔드 서버를 구현해 보았다. <br />
 
-DOM, CSSOM 외의 Shadow DOM의 존재 또한 새로이 알게 되었다.
+백엔드를 다뤄본 경험이 적어서 걱정을 했었는데, 프론트와 동일하게 Javascript로 코드를 작성하게 되어 생각보다 수월하게 작업할 수 있었던 거 같다. <br />
+
+대부분 통용되는 비지니스 로직이 있는 거 같은데, 현재 프로젝트에는 내가 짜둔 비지니스 로직으로 코드가 구성되어있다. 이는 수정이 필요할 거 같다.
