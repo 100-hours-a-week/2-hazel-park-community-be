@@ -70,3 +70,17 @@ export const deletePost = (req, res) => {
   writePostsToFile(posts)
   res.status(200).json({ message: '게시글 삭제 성공!' })
 }
+
+export const updateLikes = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const posts = readPostsFromFile()
+
+  const post = posts.find((post) => post.post_id === postId)
+  if (post) {
+    ++post.post_likes
+    writePostsToFile(posts)
+    return res.status(200).send(post)
+  } else {
+    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+  }
+}
