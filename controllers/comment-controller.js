@@ -3,6 +3,8 @@ import {
   writeCommentsToFile,
 } from './comment-json-controller.js'
 
+import { readPostsFromFile, writePostsToFile } from './post-json-controller.js'
+
 export const comments = (req, res) => {
   const postId = parseInt(req.params.postId)
   const comments = readCommentsFromFile()
@@ -25,6 +27,9 @@ export const uploadComment = (req, res) => {
   const lastComment = postComments[postComments.length - 1]
   const commentId = lastComment ? lastComment.id + 1 : 1
 
+  const posts = readPostsFromFile()
+  const post = posts.find((post) => post.post_id === postId)
+
   const newComment = {
     id: commentId,
     writer: writer,
@@ -35,6 +40,10 @@ export const uploadComment = (req, res) => {
   postComments.push(newComment)
   comments.comments[postId] = postComments
   writeCommentsToFile(comments)
+
+  ++post.post_comments
+  writePostsToFile(posts)
+
   res.status(200).json({ message: '댓글 등록 성공 야호야호' })
 }
 
