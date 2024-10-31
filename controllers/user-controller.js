@@ -36,7 +36,14 @@ export const loginUser = (req, res) => {
     (user) => user.user_email === email && user.user_pw === password,
   )
   if (user) {
-    res.status(200).json({ message: '로그인 성공!', user })
+    const checkPw = bcrypt.compareSync(password, user.user_pw)
+    if (checkPw) {
+      res.status(200).json({ message: '로그인 성공!', user })
+    } else {
+      res
+        .status(404)
+        .json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
+    }
   } else {
     res.status(404).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
   }
