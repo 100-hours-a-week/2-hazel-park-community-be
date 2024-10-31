@@ -1,4 +1,5 @@
 import { readUsersFromFile, writeUsersToFile } from './user-json-controller.js'
+import bcrypt from 'bcrypt'
 
 export const registerUser = (req, res) => {
   const { email, password, nickname } = req.body
@@ -15,9 +16,11 @@ export const registerUser = (req, res) => {
     }
   }
 
+  const hashedPw = bcrypt.hashSync(password, 10)
+
   const newUser = {
     user_email: email,
-    user_pw: password,
+    user_pw: hashedPw,
     user_name: nickname,
   }
   users.push(newUser)
@@ -33,7 +36,14 @@ export const loginUser = (req, res) => {
     (user) => user.user_email === email && user.user_pw === password,
   )
   if (user) {
-    res.status(200).json({ message: '로그인 성공!', user })
+    const checkPw = bcrypt.compareSync(password, user.user_pw)
+    if (checkPw) {
+      res.status(200).json({ message: '로그인 성공!', user })
+    } else {
+      res
+        .status(404)
+        .json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
+    }
   } else {
     res.status(404).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
   }
