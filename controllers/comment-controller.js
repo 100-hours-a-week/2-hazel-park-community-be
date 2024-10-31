@@ -16,6 +16,28 @@ export const comments = (req, res) => {
   }
 }
 
+export const uploadComment = (req, res) => {
+  const postId = parseInt(req.params.postId)
+  const { writer, updatedAt, content } = req.body
+  const comments = readCommentsFromFile()
+
+  const postComments = comments.comments[postId] || []
+  const lastComment = postComments[postComments.length - 1]
+  const commentId = lastComment ? lastComment.id + 1 : 1
+
+  const newComment = {
+    id: commentId,
+    writer: writer,
+    updateAt: updatedAt,
+    content: content,
+  }
+
+  postComments.push(newComment)
+  comments.comments[postId] = postComments
+  writeCommentsToFile(comments)
+  res.status(200).json({ message: '댓글 등록 성공 야호야호' })
+}
+
 export const editComment = (req, res) => {
   const commentId = parseInt(req.params.commentId)
   const { postId, content, updatedAt } = req.body
