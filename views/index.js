@@ -21,7 +21,6 @@ app.use(
   expressCspHeader({
     policy: {
       'default-src': ["'self'"],
-      
     },
     reportOnly: false,
   }),
