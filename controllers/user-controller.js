@@ -4,9 +4,15 @@ export const registerUser = (req, res) => {
   const { email, password, nickname } = req.body
   const users = readUsersFromFile()
 
-  const existingUser = users.find((user) => user.user_email === email)
-  if (existingUser) {
-    return res.status(400).json({ message: '이미 존재하는 이메일입니다.' })
+  const existingUserEmail = users.find((user) => user.user_email === email)
+  const existingUserName = users.find((user) => user.user_name === nickname)
+
+  if (existingUserEmail || existingUserName) {
+    if (existingUserEmail) {
+      return res.status(400).json({ message: '이미 존재하는 이메일입니다.' })
+    } else if (existingUserName) {
+      return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+    }
   }
 
   const newUser = {
@@ -37,7 +43,13 @@ export const patchUserName = (req, res) => {
   const { email, nickname } = req.body
   const users = readUsersFromFile()
 
+  const existingUser = users.find((user) => user.user_name === nickname)
+  if (existingUser) {
+    return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+  }
+
   const user = users.find((user) => user.user_email === email)
+
   if (user) {
     user.user_name = nickname
     writeUsersToFile(users)
