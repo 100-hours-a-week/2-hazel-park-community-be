@@ -32,9 +32,7 @@ export const loginUser = (req, res) => {
   const { email, password } = req.body
   const users = readUsersFromFile()
 
-  const user = users.find(
-    (user) => user.user_email === email && user.user_pw === password,
-  )
+  const user = users.find((user) => user.user_email === email)
   if (user) {
     const checkPw = bcrypt.compareSync(password, user.user_pw)
     if (checkPw) {
@@ -73,7 +71,7 @@ export const patchUserPw = (req, res) => {
 
   const user = users.find((user) => user.user_email === email)
   if (user) {
-    user.user_pw = password
+    user.user_pw = bcrypt.hashSync(password, 10)
     writeUsersToFile(users)
     res.status(200).json({ message: '비밀번호 업데이트 성공 야호야호야호!' })
   } else {
