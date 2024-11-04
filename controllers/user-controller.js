@@ -43,7 +43,7 @@ export const loginUser = (req, res) => {
       res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
     }
   } else {
-    res.status(404).json({ message: '사용자가 존재하지 않습니다.' })
+    res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
   }
 }
 
