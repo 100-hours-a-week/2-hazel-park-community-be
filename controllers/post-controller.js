@@ -21,12 +21,16 @@ export const uploadPost = (req, res) => {
   }
   posts.push(newPost)
   writePostsToFile(posts)
-  res.status(201).json({ message: '글을 업로드햇어yo' })
+  res.status(201).json({ message: '게시글 업로드 업로드 성공' })
+
+  // TODO: 에러 처리 추가
 }
 
 export const posts = (req, res) => {
   const posts = readPostsFromFile()
-  res.status(201).send(posts)
+  res.status(200).send(posts)
+
+  // TODO: 에러 처리 추가
 }
 
 export const postDetail = (req, res) => {
@@ -37,7 +41,9 @@ export const postDetail = (req, res) => {
   ++post.post_views
   writePostsToFile(posts)
 
-  res.status(201).send(post)
+  res.status(200).send(post)
+
+  // TODO: 에러 처리 추가
 }
 
 export const editPost = (req, res) => {
@@ -63,7 +69,7 @@ export const deletePost = (req, res) => {
 
   const postIndex = posts.findIndex((post) => post.post_id === postId)
   if (postIndex === -1) {
-    return res.status(404).json({ message: '게시글을 찾을 수 없습니다.' })
+    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
   }
 
   posts.splice(postIndex, 1)
