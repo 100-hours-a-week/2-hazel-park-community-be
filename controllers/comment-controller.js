@@ -41,10 +41,12 @@ export const uploadComment = (req, res) => {
   comments.comments[postId] = postComments
   writeCommentsToFile(comments)
 
-  ++post.post_comments
+  ++post.post_comments                                                 
   writePostsToFile(posts)
 
-  res.status(200).json({ message: '댓글 등록 성공 야호야호' })
+  res.status(201).json({ message: '댓글 등록 성공 야호야호' })
+
+  // TODO: 에러 처리 추가하기
 }
 
 export const editComment = (req, res) => {
