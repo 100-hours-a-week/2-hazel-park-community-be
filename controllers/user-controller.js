@@ -40,12 +40,10 @@ export const loginUser = (req, res) => {
     if (checkPw) {
       res.status(200).json({ message: '로그인 성공!', user })
     } else {
-      res
-        .status(404)
-        .json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
+      res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
     }
   } else {
-    res.status(404).json({ message: '이메일 또는 비밀번호가 잘못되었습니다.' })
+    res.status(404).json({ message: '사용자가 존재하지 않습니다.' })
   }
 }
 
