@@ -5,9 +5,14 @@ import { expressCspHeader } from 'express-csp-header'
 import userRoutes from '../routes/user-route.js'
 import postRoutes from '../routes/post-route.js'
 import commentRoutes from '../routes/comment-route.js'
+import cookieParser from 'cookie-parser'
+import session from 'express-session'
+import dotenv from 'dotenv'
 
+dotenv.config({ path: '../.env' })
 const app = express()
 const PORT = 3000
+const secret_key = process.env.SECRET_KEY
 
 app.use(
   cors({
@@ -23,6 +28,20 @@ app.use(
       'default-src': ["'self'"],
     },
     reportOnly: false,
+  }),
+)
+
+app.use(cookieParser())
+app.use(
+  session({
+    secret: secret_key,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24,
+    },
   }),
 )
 
