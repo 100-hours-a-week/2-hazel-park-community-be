@@ -32,12 +32,12 @@ export const loginUser = (req, res) => {
   const { email, password } = req.body
   const users = readUsersFromFile()
 
-  const user = users.find(
-    (user) => user.user_email === email && user.user_pw === password,
-  )
+  const user = users.find((user) => user.user_email === email)
   if (user) {
     const checkPw = bcrypt.compareSync(password, user.user_pw)
     if (checkPw) {
+      req.session.user = { email: user.user_email, nickname: user.user_name }
+      console.log(req.session)
       res.status(200).json({ message: '로그인 성공!', user })
     } else {
       res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
@@ -73,7 +73,7 @@ export const patchUserPw = (req, res) => {
 
   const user = users.find((user) => user.user_email === email)
   if (user) {
-    user.user_pw = password
+    user.user_pw = bcrypt.hashSync(password, 10)
     writeUsersToFile(users)
     res.status(200).json({ message: '비밀번호 업데이트 성공 야호야호야호!' })
   } else {
@@ -93,4 +93,24 @@ export const deleteUser = (req, res) => {
   users.splice(userIndex, 1)
   writeUsersToFile(users)
   res.status(200).json({ message: '회원 탈퇴 성공!' })
+}
+
+export const logoutUser = (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: '로그아웃 중 에러가 발생했습니다.' })
+    }
+    res.clearCookie('connect.sid')
+    res.status(200).json({ message: '로그아웃 성공!' })
+  })
+}
+
+export const authenticate = (req, res, next) => {
+  if (req.session.user) {
+    next()
+  } else {
+    res.status(401).json({ message: '인증이 필요합니다.' })
+  }
 }
