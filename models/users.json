@@ -1,0 +1,22 @@
+[
+  {
+    "user_email": "hi@hi.hi",
+    "user_pw": "Hihi1234?",
+    "user_name": "으아아아아앍"
+  },
+  {
+    "user_email": "hihi@hi.hi",
+    "user_pw": "Hihi1234!",
+    "user_name": "hi2"
+  },
+  {
+    "user_email": "hello@hello.hello",
+    "user_pw": "$2b$10$Fe61/GC.mdhwUN.6CgHvCepD.5fzu1q4/nNCWdjhsvkX9UMXJjBOG",
+    "user_name": "hello"
+  },
+  {
+    "user_email": "test@test.test",
+    "user_pw": "$2b$10$Q/I4Jy5Ke7O52PA4Ta2KseAK8uSmNK9hhZUpwsgnpQTloaa6ahcZq",
+    "user_name": "test"
+  }
+]
