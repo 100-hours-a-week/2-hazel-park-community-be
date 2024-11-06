@@ -31,16 +31,17 @@ app.use(
   }),
 )
 
-app.use(cookieParser())
+app.use(cookieParser(secret_key))
 app.use(
   session({
     secret: secret_key,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      httpOnly: true,
-      secure: false,
-      maxAge: 1000 * 60 * 60 * 24,
+      httpOnly: false,
+      secure: false, // 개발 환경에서는 false로 설정
+      maxAge: 24 * 60 * 60 * 1000, // 쿠키의 유효 기간 (24시간)
+      sameSite: 'none',
     },
   }),
 )
