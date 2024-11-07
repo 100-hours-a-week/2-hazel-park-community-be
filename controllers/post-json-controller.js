@@ -8,13 +8,19 @@ const __dirname = path.dirname(__filename)
 const dataFilePath = path.join(__dirname, '../models/posts.json')
 
 export const readPostsFromFile = () => {
-  if (!fs.existsSync(dataFilePath)) {
+  try {
+    const data = fs.readFileSync(dataFilePath)
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('파일 읽기 오류:', error)
     return []
   }
-  const data = fs.readFileSync(dataFilePath)
-  return JSON.parse(data)
 }
 
 export const writePostsToFile = (posts) => {
-  fs.writeFileSync(dataFilePath, JSON.stringify(posts, null, 2))
+  try {
+    fs.writeFileSync(dataFilePath, JSON.stringify(posts, null, 2))
+  } catch (error) {
+    throw new Error('파일 저장에 실패했습니다.')
+  }
 }

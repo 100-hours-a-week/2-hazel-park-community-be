@@ -25,7 +25,7 @@ export const registerUser = (req, res) => {
   }
   users.push(newUser)
   writeUsersToFile(users)
-  res.status(201).json({ message: '회원가입 성공!' })
+  res.status(201).json({ message: '회원가입이 완료되었습니다.' })
 }
 
 export const loginUser = (req, res) => {
@@ -37,7 +37,10 @@ export const loginUser = (req, res) => {
     const checkPw = bcrypt.compareSync(password, user.user_pw)
     if (checkPw) {
       req.session.user = { email: user.user_email, nickname: user.user_name }
-      res.status(200).json({ message: '로그인 성공!', user: req.session.user })
+      res.status(200).json({
+        message: '로그인에 성공하였습니다.',
+        user: req.session.user,
+      })
       console.log('login session:', req.session)
     } else {
       res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
@@ -62,7 +65,7 @@ export const patchUserName = (req, res) => {
     user.user_name = nickname
     console.log(req.session.user)
     writeUsersToFile(users)
-    res.status(200).json({ message: '닉네임 업데이트 성공 야호야호' })
+    res.status(200).json({ message: '닉네임이 업데이트 되었습니다.' })
   } else {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
   }
@@ -76,7 +79,7 @@ export const patchUserPw = (req, res) => {
   if (user) {
     user.user_pw = bcrypt.hashSync(password, 10)
     writeUsersToFile(users)
-    res.status(200).json({ message: '비밀번호 업데이트 성공 야호야호야호!' })
+    res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
   } else {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
   }
@@ -93,11 +96,16 @@ export const deleteUser = (req, res) => {
 
   users.splice(userIndex, 1)
   writeUsersToFile(users)
-  res.status(200).json({ message: '회원 탈퇴 성공!' })
+  res.status(200).json({ message: '회원 탈퇴에 성공하였습니다.' })
 }
 
 export const logoutUser = (req, res) => {
-  req.session = null
-  res.clearCookie('session')
-  res.status(200).json({ message: '로그아웃 성공!' })
+  try {
+    req.session = null
+    res.clearCookie('session')
+
+    res.status(200).json({ message: '로그아웃에 성공하였습니다.' })
+  } catch (error) {
+    res.status(500).json({ message: '로그아웃에 실패하였습니다.' })
+  }
 }

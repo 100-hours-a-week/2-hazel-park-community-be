@@ -5,8 +5,8 @@
     "post_writer": "User A",
     "post_updatedAt": "2024-11-07 09:43:34",
     "post_contents": "내용도 바꿔..dsfㅇ",
-    "post_likes": 19,
-    "post_views": 399,
+    "post_likes": 23,
+    "post_views": 589,
     "post_comments": 10
   },
   {
@@ -15,8 +15,8 @@
     "post_writer": "User B",
     "post_updatedAt": "2023-10-29 09:20:00",
     "post_contents": "Another post here.",
-    "post_likes": 3,
-    "post_views": 41,
+    "post_likes": 4,
+    "post_views": 45,
     "post_comments": 2
   }
 ]

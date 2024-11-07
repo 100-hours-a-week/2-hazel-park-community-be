@@ -7,6 +7,7 @@ import {
   deletePost,
   updateLikes,
 } from '../controllers/post-controller.js'
+import { comments, uploadComment } from '../controllers/comment-controller.js'
 
 const router = express.Router()
 
@@ -16,5 +17,8 @@ router.get('/:postId', postDetail)
 router.patch('/:postId', editPost)
 router.delete('/:postId', deletePost)
 router.patch('/likes/:postId', updateLikes)
+
+router.get('/:postId/comments', comments)
+router.post('/:postId/comment', uploadComment)
 
 export default router
