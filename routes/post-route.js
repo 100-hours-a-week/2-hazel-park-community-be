@@ -10,7 +10,7 @@ import {
 
 const router = express.Router()
 
-router.post('/upload', uploadPost)
+router.post('/', uploadPost)
 router.get('/', posts)
 router.get('/:postId', postDetail)
 router.patch('/:postId', editPost)

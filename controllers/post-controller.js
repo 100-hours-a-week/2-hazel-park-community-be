@@ -49,10 +49,14 @@ export const postDetail = (req, res) => {
     const posts = readPostsFromFile()
 
     const post = posts.find((post) => post.post_id === postId)
-    ++post.post_views
-    writePostsToFile(posts)
+    if (post) {
+      ++post.post_views
+      writePostsToFile(posts)
 
-    res.status(200).send(post)
+      res.status(200).send(post)
+    } else {
+      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    }
   } catch (error) {
     res.status(500).json({ message: '게시글 정보를 불러오지 못 했습니다.' })
   }
@@ -64,17 +68,15 @@ export const editPost = (req, res) => {
     const { title, content, updatedAt } = req.body
     const posts = readPostsFromFile()
 
-    try {
-      const post = posts.find((post) => post.post_id === postId)
-
-      post.post_title = title
-      post.post_contents = content
-      post.post_updatedAt = updatedAt
-      writePostsToFile(posts)
-      return res.status(200).json({ message: '게시글 수정 성공' })
-    } catch (error) {
+    const post = posts.find((post) => post.post_id === postId)
+    if (!post) {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
+    post.post_title = title
+    post.post_contents = content
+    post.post_updatedAt = updatedAt
+    writePostsToFile(posts)
+    return res.status(200).json({ message: '게시글 수정 성공' })
   } catch (error) {
     return res
       .status(500)
