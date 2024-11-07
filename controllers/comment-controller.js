@@ -41,7 +41,7 @@ export const uploadComment = (req, res) => {
   comments.comments[postId] = postComments
   writeCommentsToFile(comments)
 
-  ++post.post_comments                                                 
+  ++post.post_comments
   writePostsToFile(posts)
 
   res.status(201).json({ message: '댓글 등록 성공 야호야호' })
@@ -80,6 +80,9 @@ export const deleteCommtent = (req, res) => {
 
   const postComments = comments.comments[postId]
 
+  const posts = readPostsFromFile()
+  const post = posts.find((post) => post.post_id === postId)
+
   if (!postComments) {
     return res
       .status(404)
@@ -96,5 +99,9 @@ export const deleteCommtent = (req, res) => {
   postComments.splice(commentIndex, 1)
   comments.comments[postId] = postComments
   writeCommentsToFile(comments)
+
+  --post.post_comments
+  writePostsToFile(posts)
+
   res.status(200).json({ message: '댓글 삭제 성공 야호야호' })
 }
