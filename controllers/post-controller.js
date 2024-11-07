@@ -28,7 +28,7 @@ export const uploadPost = (req, res) => {
     }
     posts.push(newPost)
     writePostsToFile(posts)
-    res.status(201).json({ message: '게시글 업로드 성공' })
+    res.status(201).json({ message: '게시글을 업로드 하였습니다.' })
   } catch (error) {
     res.status(500).json({ message: '게시글 업로드에 실패했습니다.' })
   }
@@ -39,7 +39,7 @@ export const posts = (req, res) => {
     const posts = readPostsFromFile()
     res.status(200).send(posts)
   } catch (error) {
-    res.status(500).json({ message: '게시글 정보를 불러오지 못 했습니다.' })
+    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
 }
 
@@ -58,7 +58,7 @@ export const postDetail = (req, res) => {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
   } catch (error) {
-    res.status(500).json({ message: '게시글 정보를 불러오지 못 했습니다.' })
+    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
 }
 
@@ -76,11 +76,11 @@ export const editPost = (req, res) => {
     post.post_contents = content
     post.post_updatedAt = updatedAt
     writePostsToFile(posts)
-    return res.status(200).json({ message: '게시글 수정 성공' })
+    return res.status(200).json({ message: '게시글을 수정하였습니다.' })
   } catch (error) {
     return res
       .status(500)
-      .json({ message: '게시글 정보를 불러오지 못 했습니다.' })
+      .json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
 }
 
@@ -96,11 +96,11 @@ export const deletePost = (req, res) => {
 
     posts.splice(postIndex, 1)
     writePostsToFile(posts)
-    res.status(200).json({ message: '게시글 삭제 성공' })
+    res.status(200).json({ message: '게시글을 삭제하였습니다.' })
   } catch (error) {
     return res
       .status(500)
-      .json({ message: '게시글 정보를 불러오지 못 했습니다.' })
+      .json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
 }
 

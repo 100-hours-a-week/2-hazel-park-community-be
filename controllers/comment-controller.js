@@ -5,9 +5,16 @@ import {
 
 import { readPostsFromFile, writePostsToFile } from './post-json-controller.js'
 
+function checkPostID(postId) {
+  if (postId <= 0) {
+    return false
+  }
+  return true
+}
+
 export const comments = (req, res) => {
   const postId = parseInt(req.params.postId)
-  if (postId < 0 || !isNaN(postId)) {
+  if (!checkPostID(postId)) {
     return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
   }
   const comments = readCommentsFromFile()
@@ -29,6 +36,9 @@ export const uploadComment = (req, res) => {
   try {
     const postId = parseInt(req.params.postId)
     const { writer, updatedAt, content } = req.body
+    if (!checkPostID(postId)) {
+      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
+    }
     const comments = readCommentsFromFile()
 
     const postComments = comments.comments[postId] || []
@@ -52,7 +62,7 @@ export const uploadComment = (req, res) => {
     ++post.post_comments
     writePostsToFile(posts)
 
-    res.status(201).json({ message: '댓글 등록 성공' })
+    res.status(201).json({ message: '댓글을 등록하였습니다.' })
   } catch (error) {
     return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
   }
@@ -62,6 +72,9 @@ export const editComment = (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId)
     const { postId, content, updatedAt } = req.body
+    if (!checkPostID(postId)) {
+      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
+    }
     const comments = readCommentsFromFile()
 
     const postComments = comments.comments[postId]
@@ -77,14 +90,12 @@ export const editComment = (req, res) => {
       comment.content = content
       comment.updateAt = updatedAt
       writeCommentsToFile(comments)
-      res.status(200).json({ message: '댓글 수정 완료' })
+      res.status(200).json({ message: '댓글을 수정하였습니다.' })
     } else {
       return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
     }
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: '댓글 정보를 불러오지 못 했습니다.' })
+    return res.status(500).json({ message: '댓글 정보를 불러오지 못했습니다.' })
   }
 }
 
@@ -92,7 +103,9 @@ export const deleteComment = (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId)
     const { postId } = req.body
-
+    if (!checkPostID(postId)) {
+      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
+    }
     const comments = readCommentsFromFile()
     const postComments = comments.comments[postId]
     const posts = readPostsFromFile()
@@ -101,7 +114,7 @@ export const deleteComment = (req, res) => {
     if (!postComments) {
       return res
         .status(404)
-        .json({ message: '해당 포스트에 댓글들이 존재하지 않습니다.' })
+        .json({ message: '해당 포스트에 댓글이 존재하지 않습니다.' })
     }
 
     const commentIndex = postComments.findIndex(
@@ -118,8 +131,8 @@ export const deleteComment = (req, res) => {
     --post.post_comments
     writePostsToFile(posts)
 
-    res.status(200).json({ message: '댓글 삭제 성공' })
+    res.status(200).json({ message: '댓글을 삭제하였습니다.' })
   } catch (error) {
-    return res.status(500).json({ message: '댓글을 삭제하지 못 했습니다.' })
+    return res.status(500).json({ message: '댓글을 삭제하지 못했습니다.' })
   }
 }

@@ -1,16 +1,12 @@
 import express from 'express'
 import {
-  comments,
-  uploadComment,
   editComment,
-  deleteCommtent,
+  deleteComment,
 } from '../controllers/comment-controller.js'
 
 const router = express.Router()
 
-router.get('/:postId', comments)
-router.post('/:postId', uploadComment)
 router.patch('/:commentId', editComment)
-router.delete('/:commentId', deleteCommtent)
+router.delete('/:commentId', deleteComment)
 
 export default router
