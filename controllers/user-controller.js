@@ -2,15 +2,15 @@ import { readUsersFromFile, writeUsersToFile } from './user-json-controller.js'
 import bcrypt from 'bcrypt'
 import multer from 'multer'
 import path from 'path'
-import { fileURLToPath } from 'url'
+//import { fileURLToPath } from 'url'
 import fs from 'fs'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+//const __filename = fileURLToPath(import.meta.url)
+//const __dirname = path.dirname(__filename)
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.resolve(__dirname, '../uploads/'))
+    cb(null, '../uploads/')
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname))
@@ -45,7 +45,7 @@ export const registerUser = (req, res) => {
       user_email: email,
       user_pw: hashedPw,
       user_name: nickname,
-      profile_picture: req.file ? req.file.path : null,
+      profile_picture: req.file ? req.file.filename : null,
     }
 
     users.push(newUser)
@@ -72,7 +72,7 @@ export const loginUser = (req, res) => {
       if (user.profile_picture) {
         const imagePath = path.isAbsolute(user.profile_picture)
           ? user.profile_picture
-          : path.join(__dirname, '..', user.profile_picture)
+          : path.join('../uploads', user.profile_picture)
         if (fs.existsSync(imagePath)) {
           try {
             const image = fs.readFileSync(imagePath)
