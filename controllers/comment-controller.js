@@ -44,7 +44,7 @@ export const uploadComment = (req, res) => {
   ++post.post_comments
   writePostsToFile(posts)
 
-  res.status(201).json({ message: '댓글 등록 성공 야호야호' })
+  res.status(201).json({ message: '댓글 등록 성공' })
 
   // TODO: 에러 처리 추가하기
 }
@@ -67,7 +67,7 @@ export const editComment = (req, res) => {
     comment.content = content
     comment.updateAt = updatedAt
     writeCommentsToFile(comments)
-    res.status(200).json({ message: '댓글 수정 완료 야호야호' })
+    res.status(200).json({ message: '댓글 수정 완료' })
   } else {
     return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
   }
@@ -103,5 +103,5 @@ export const deleteCommtent = (req, res) => {
   --post.post_comments
   writePostsToFile(posts)
 
-  res.status(200).json({ message: '댓글 삭제 성공 야호야호' })
+  res.status(200).json({ message: '댓글 삭제 성공' })
 }

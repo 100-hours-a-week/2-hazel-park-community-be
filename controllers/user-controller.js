@@ -62,7 +62,7 @@ export const patchUserName = (req, res) => {
     user.user_name = nickname
     console.log(req.session.user)
     writeUsersToFile(users)
-    res.status(200).json({ message: '닉네임 업데이트 성공 야호야호' })
+    res.status(200).json({ message: '닉네임 업데이트 성공' })
   } else {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
   }
@@ -76,7 +76,7 @@ export const patchUserPw = (req, res) => {
   if (user) {
     user.user_pw = bcrypt.hashSync(password, 10)
     writeUsersToFile(users)
-    res.status(200).json({ message: '비밀번호 업데이트 성공 야호야호야호!' })
+    res.status(200).json({ message: '비밀번호 업데이트 성공' })
   } else {
     return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
   }
@@ -93,7 +93,7 @@ export const deleteUser = (req, res) => {
 
   users.splice(userIndex, 1)
   writeUsersToFile(users)
-  res.status(200).json({ message: '회원 탈퇴 성공!' })
+  res.status(200).json({ message: '회원 탈퇴 성공' })
 }
 
 export const logoutUser = (req, res) => {
