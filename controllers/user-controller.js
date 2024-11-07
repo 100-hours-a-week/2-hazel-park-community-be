@@ -48,7 +48,7 @@ export const loginUser = (req, res) => {
 }
 
 export const patchUserName = (req, res) => {
-  const { nickname } = req.body
+  const { email, nickname } = req.body
   const users = readUsersFromFile()
 
   const existingUser = users.find((user) => user.user_name === nickname)
@@ -56,12 +56,10 @@ export const patchUserName = (req, res) => {
     return res.status(400).json({ message: '중복된 닉네임 입니다.' })
   }
 
-  const userEmail = req.session.user.email
-  const user = users.find((user) => user.user_email === userEmail)
+  const user = users.find((user) => user.user_email === email)
 
   if (user) {
     user.user_name = nickname
-    req.session.user.user_name = nickname
     console.log(req.session.user)
     writeUsersToFile(users)
     res.status(200).json({ message: '닉네임 업데이트 성공 야호야호' })
@@ -99,23 +97,7 @@ export const deleteUser = (req, res) => {
 }
 
 export const logoutUser = (req, res) => {
-  req.session = null // Directly clearing session data with cookie-session
-  res.clearCookie('session') // Clear the session cookie
+  req.session = null
+  res.clearCookie('session')
   res.status(200).json({ message: '로그아웃 성공!' })
-}
-
-export const checkSession = (req, res) => {
-  console.log('check session:', req.session)
-
-  if (req.session && req.session.user) {
-    res.status(200).json({
-      user: req.session.user,
-      authenticated: true,
-    })
-  } else {
-    res.status(401).json({
-      message: '로그인 정보가 없습니다.',
-      authenticated: false,
-    })
-  }
 }

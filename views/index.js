@@ -39,8 +39,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: false,
-      secure: false, // 개발 환경에서는 false로 설정
-      maxAge: 24 * 60 * 60 * 1000, // 쿠키의 유효 기간 (24시간)
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
       sameSite: 'none',
     },
   }),
