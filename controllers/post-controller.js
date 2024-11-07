@@ -2,6 +2,9 @@ import {
   readPostsFromFile,
   writePostsToFile,
 } from '../controllers/post-json-controller.js'
+import { readUsersFromFile } from './user-json-controller.js'
+import { loadProfileImg } from '../utils/load-profile-img.js'
+import path from 'path'
 
 export const uploadPost = (req, res) => {
   try {
@@ -37,7 +40,28 @@ export const uploadPost = (req, res) => {
 export const posts = (req, res) => {
   try {
     const posts = readPostsFromFile()
-    res.status(200).send(posts)
+    const users = readUsersFromFile()
+
+    const postWithAuthorInfo = posts.map((post) => {
+      const writer = users.find((user) => user.user_name === post.post_writer)
+
+      const profilePicture = writer?.profile_picture
+
+      const imagePath = profilePicture
+        ? path.isAbsolute(profilePicture)
+          ? profilePicture
+          : path.join('../uploads', profilePicture)
+        : null
+
+      const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
+      return {
+        ...post,
+        author_profile_picture: base64Image,
+      }
+    })
+
+    res.status(200).send(postWithAuthorInfo)
   } catch (error) {
     res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }

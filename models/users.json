@@ -17,7 +17,8 @@
   {
     "user_email": "test@test.test",
     "user_pw": "$2b$10$Q/I4Jy5Ke7O52PA4Ta2KseAK8uSmNK9hhZUpwsgnpQTloaa6ahcZq",
-    "user_name": "test"
+    "user_name": "test",
+    "profile_picture": null
   },
   {
     "user_email": "img@img.img",

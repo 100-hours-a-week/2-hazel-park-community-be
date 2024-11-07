@@ -2,11 +2,7 @@ import { readUsersFromFile, writeUsersToFile } from './user-json-controller.js'
 import bcrypt from 'bcrypt'
 import multer from 'multer'
 import path from 'path'
-//import { fileURLToPath } from 'url'
-import fs from 'fs'
-
-//const __filename = fileURLToPath(import.meta.url)
-//const __dirname = path.dirname(__filename)
+import { loadProfileImg } from '../utils/load-profile-img.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -73,16 +69,7 @@ export const loginUser = (req, res) => {
         const imagePath = path.isAbsolute(user.profile_picture)
           ? user.profile_picture
           : path.join('../uploads', user.profile_picture)
-        if (fs.existsSync(imagePath)) {
-          try {
-            const image = fs.readFileSync(imagePath)
-            sessionUser.profilePicture = `data:image/jpeg;base64,${image.toString('base64')}`
-          } catch (error) {
-            console.error('이미지 파일을 읽는 중 오류 발생:', error)
-          }
-        } else {
-          console.warn('프로필 이미지 파일을 찾을 수 없습니다:', imagePath)
-        }
+        loadProfileImg(imagePath)
       }
 
       req.session.user = sessionUser
