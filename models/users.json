@@ -18,5 +18,17 @@
     "user_email": "test@test.test",
     "user_pw": "$2b$10$Q/I4Jy5Ke7O52PA4Ta2KseAK8uSmNK9hhZUpwsgnpQTloaa6ahcZq",
     "user_name": "test"
+  },
+  {
+    "user_email": "heejin@heejin.heejin",
+    "user_pw": "$2b$10$Hb9hH/jrFTTe3GV75ssiFu3hj851beQDZCaNsBmirmrMdgN/fZZnG",
+    "user_name": "heejin",
+    "profile_picture": "/Users/hazel/KTB-Jeju-2nd/project/2-hazel-park-community-be/uploads/1730968738774.jpg"
+  },
+  {
+    "user_email": "testt@test.test",
+    "user_pw": "$2b$10$XneOxI8ScV.7WqGs.kZ2seVNR1xYd.JEks.YlVYlaNY0m4dLPv7dG",
+    "user_name": "testt",
+    "profile_picture": "/Users/hazel/KTB-Jeju-2nd/project/2-hazel-park-community-be/uploads/1730969485343.jpg"
   }
 ]
