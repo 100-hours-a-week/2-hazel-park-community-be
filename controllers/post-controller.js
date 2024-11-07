@@ -106,6 +106,7 @@ export const deletePost = (req, res) => {
 
 export const updateLikes = (req, res) => {
   const postId = parseInt(req.params.postId)
+  const { isLiked } = req.body
   const posts = readPostsFromFile()
 
   try {
@@ -115,7 +116,7 @@ export const updateLikes = (req, res) => {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
 
-    ++post.post_likes
+    post.post_likes += isLiked ? 1 : -1
     writePostsToFile(posts)
     return res.status(200).send(post)
   } catch (error) {
