@@ -31,16 +31,17 @@ app.use(
   }),
 )
 
-app.use(cookieParser())
+app.use(cookieParser(secret_key))
 app.use(
   session({
     secret: secret_key,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 24 * 60 * 60 * 1000,
+      sameSite: 'none',
     },
   }),
 )

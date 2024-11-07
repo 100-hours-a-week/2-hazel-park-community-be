@@ -37,8 +37,8 @@ export const loginUser = (req, res) => {
     const checkPw = bcrypt.compareSync(password, user.user_pw)
     if (checkPw) {
       req.session.user = { email: user.user_email, nickname: user.user_name }
-      console.log(req.session)
-      res.status(200).json({ message: '로그인 성공!', user })
+      res.status(200).json({ message: '로그인 성공!', user: req.session.user })
+      console.log('login session:', req.session)
     } else {
       res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
     }
@@ -60,6 +60,7 @@ export const patchUserName = (req, res) => {
 
   if (user) {
     user.user_name = nickname
+    console.log(req.session.user)
     writeUsersToFile(users)
     res.status(200).json({ message: '닉네임 업데이트 성공 야호야호' })
   } else {
@@ -96,21 +97,7 @@ export const deleteUser = (req, res) => {
 }
 
 export const logoutUser = (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: '로그아웃 중 에러가 발생했습니다.' })
-    }
-    res.clearCookie('connect.sid')
-    res.status(200).json({ message: '로그아웃 성공!' })
-  })
-}
-
-export const authenticate = (req, res, next) => {
-  if (req.session.user) {
-    next()
-  } else {
-    res.status(401).json({ message: '인증이 필요합니다.' })
-  }
+  req.session = null
+  res.clearCookie('session')
+  res.status(200).json({ message: '로그아웃 성공!' })
 }

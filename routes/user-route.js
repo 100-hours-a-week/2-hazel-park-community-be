@@ -6,7 +6,6 @@ import {
   patchUserPw,
   deleteUser,
   logoutUser,
-  authenticate,
 } from '../controllers/user-controller.js'
 
 const router = express.Router()
@@ -14,8 +13,8 @@ const router = express.Router()
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.post('/logout', logoutUser)
-router.patch('/patchName', patchUserName, authenticate)
-router.patch('/patchPw', patchUserPw, authenticate)
-router.delete('/delete', deleteUser, authenticate)
+router.patch('/patchName', patchUserName)
+router.patch('/patchPw', patchUserPw)
+router.delete('/delete', deleteUser)
 
 export default router

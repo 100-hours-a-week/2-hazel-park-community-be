@@ -5,13 +5,12 @@ import {
   editComment,
   deleteCommtent,
 } from '../controllers/comment-controller.js'
-import { authenticate } from '../controllers/user-controller.js'
 
 const router = express.Router()
 
 router.get('/:postId', comments)
-router.post('/:postId', uploadComment, authenticate)
-router.patch('/:commentId', editComment, authenticate)
-router.delete('/:commentId', deleteCommtent, authenticate)
+router.post('/:postId', uploadComment)
+router.patch('/:commentId', editComment)
+router.delete('/:commentId', deleteCommtent)
 
 export default router
