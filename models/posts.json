@@ -15,9 +15,9 @@
     "post_writer": "img@img.img",
     "post_updatedAt": "2023-10-30T10:30:00Z",
     "post_contents": "This is a sample post 3.",
-    "post_likes": "100000",
-    "post_views": 10013,
-    "post_comments": "1000",
+    "post_likes": 100000,
+    "post_views": 10021,
+    "post_comments": 1002,
     "post_img": "1731042020360.png"
   },
   {
@@ -27,7 +27,7 @@
     "post_updatedAt": "2024-11-07 09:43:34",
     "post_contents": "내용도 바꿔..dsfㅇ",
     "post_likes": 23,
-    "post_views": 802,
+    "post_views": 804,
     "post_comments": 10
   },
   {
@@ -36,9 +36,20 @@
     "post_writer": "img@img.img",
     "post_updatedAt": "2024-11-08 15:01:21",
     "post_contents": "ddd",
-    "post_likes": "0",
-    "post_views": 182,
-    "post_comments": "0",
+    "post_likes": 0,
+    "post_views": 270,
+    "post_comments": 0,
     "post_img": "1731045681973.jpg"
+  },
+  {
+    "post_id": 5,
+    "post_title": "hazel",
+    "post_writer": "hazel@hazel.hazel",
+    "post_updatedAt": "2024-11-08 15:44:45",
+    "post_contents": "hazel test",
+    "post_likes": 4,
+    "post_views": 240,
+    "post_comments": 0,
+    "post_img": null
   }
 ]

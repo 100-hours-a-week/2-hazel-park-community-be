@@ -1,22 +1,7 @@
 [
   {
-    "user_email": "hi@hi.hi",
-    "user_pw": "Hihi1234?",
-    "user_name": "으아아아아앍"
-  },
-  {
-    "user_email": "hihi@hi.hi",
-    "user_pw": "Hihi1234!",
-    "user_name": "hi2"
-  },
-  {
-    "user_email": "hello@hello.hello",
-    "user_pw": "$2b$10$DkS2BZtggpAWxMZRIDXJse85Xd0TRxTISGv3v/YTOhjPzsbs4Uzme",
-    "user_name": "hello2"
-  },
-  {
     "user_email": "test@test.test",
-    "user_pw": "$2b$10$Q/I4Jy5Ke7O52PA4Ta2KseAK8uSmNK9hhZUpwsgnpQTloaa6ahcZq",
+    "user_pw": "$2b$10$//Cok0XqleYWdOrXHUV6f.0K5jPk5OtiGlkLyk.UhRq/s4RCFQMJa",
     "user_name": "test",
     "profile_picture": "203947923984.png"
   },
@@ -25,5 +10,11 @@
     "user_pw": "$2b$10$.ECO8Agpkngro7xc8llrze53iHA8i7ly9uJCudis8SRKlQX1WZyJa",
     "user_name": "change",
     "profile_picture": "1731034097833.jpg"
+  },
+  {
+    "user_email": "hazel@hazel.hazel",
+    "user_pw": "$2b$10$qzh/Rl140F1fGi122Ofqi.plV40MMgibv7IPBOcPtfok0KAay0E5a",
+    "user_name": "hazel",
+    "profile_picture": null
   }
 ]

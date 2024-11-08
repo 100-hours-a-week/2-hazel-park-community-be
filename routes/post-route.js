@@ -16,7 +16,7 @@ router.get('/', posts)
 router.get('/:postId', postDetail)
 router.patch('/:postId', editPost)
 router.delete('/:postId', deletePost)
-router.patch('/likes/:postId', updateLikes)
+router.patch('/:postId/likes', updateLikes)
 
 router.get('/:postId/comments', comments)
 router.post('/:postId/comment', uploadComment)

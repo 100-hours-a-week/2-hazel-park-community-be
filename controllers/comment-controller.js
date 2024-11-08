@@ -49,7 +49,7 @@ export const comments = (req, res) => {
       })
       res.status(200).json(commentsWithAuthorInfo)
     } else {
-      res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
+      res.status(200).json({ message: '댓글이 존재하지 않습니다.', data: null })
     }
   } catch (error) {
     res.status(500).json({ message: '댓글 조회에 실패했습니다.' })
