@@ -43,7 +43,7 @@ export const posts = (req, res) => {
     const users = readUsersFromFile()
 
     const postWithAuthorInfo = posts.map((post) => {
-      const writer = users.find((user) => user.user_name === post.post_writer)
+      const writer = users.find((user) => user.user_email === post.post_writer)
 
       const profilePicture = writer?.profile_picture
 
@@ -57,6 +57,7 @@ export const posts = (req, res) => {
 
       return {
         ...post,
+        post_writer: writer.user_name,
         author_profile_picture: base64Image,
       }
     })
@@ -75,7 +76,7 @@ export const postDetail = (req, res) => {
 
     const post = posts.find((post) => post.post_id === postId)
     if (post) {
-      const writer = users.find((user) => user.user_name === post.post_writer)
+      const writer = users.find((user) => user.user_email === post.post_writer)
 
       const profilePicture = writer?.profile_picture
 
@@ -92,6 +93,7 @@ export const postDetail = (req, res) => {
 
       const postWithAuthorInfo = {
         ...post,
+        post_writer: writer.user_name,
         author_profile_picture: base64Image,
       }
 
