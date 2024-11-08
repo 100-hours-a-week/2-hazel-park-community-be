@@ -24,7 +24,9 @@ const upload = multer({
 export const registerUser = (req, res) => {
   upload.single('profilePic')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+      return res
+        .status(400)
+        .json({ message: '프로필 이미지 등록에 실패했습니다.' })
     }
 
     const { email, password, nickname } = req.body
@@ -93,10 +95,12 @@ export const loginUser = (req, res) => {
   }
 }
 
-export const patchUserName = (req, res) => {
+export const userInfo = (req, res) => {
   upload.single('newProfileImg')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ message: err.message })
+      return res
+        .status(400)
+        .json({ message: '프로필 이미지 변경에 실패했습니다.' })
     }
 
     const { email, nickname } = req.body
@@ -116,14 +120,14 @@ export const patchUserName = (req, res) => {
         user.profile_picture = req.file.filename
       }
       writeUsersToFile(users)
-      res.status(200).json({ message: '닉네임이 업데이트 되었습니다.' })
+      res.status(200).json({ message: '사용자 정보가 업데이트 되었습니다.' })
     } else {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
     }
   })
 }
 
-export const patchUserPw = (req, res) => {
+export const userPw = (req, res) => {
   const { email, password } = req.body
   const users = readUsersFromFile()
 

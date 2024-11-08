@@ -27,7 +27,9 @@ const upload = multer({
 export const uploadPost = (req, res) => {
   upload.single('postImg')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+      return res
+        .status(400)
+        .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
     }
     try {
       const { title, writer, updatedAt, contents, likes, views, comments } =
@@ -66,6 +68,12 @@ export const posts = (req, res) => {
   try {
     const posts = readPostsFromFile()
     const users = readUsersFromFile()
+
+    if (posts.length === 0) {
+      return res
+        .status(200)
+        .json({ message: '게시글이 존재하지 않습니다.', data: null })
+    }
 
     const postWithAuthorInfo = posts.map((post) => {
       const writer = users.find((user) => user.user_email === post.post_writer)
@@ -158,7 +166,9 @@ export const postDetail = (req, res) => {
 export const editPost = (req, res) => {
   upload.single('postImg')(req, res, (err) => {
     if (err) {
-      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+      return res
+        .status(400)
+        .json({ message: '게시글 이미지 변경에 실패했습니다.' })
     }
     const postId = parseInt(req.params.postId)
     const { title, content, updatedAt } = req.body
@@ -212,7 +222,7 @@ export const updateLikes = (req, res) => {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
 
-    post.post_likes += isLiked ? 1 : -1
+    post.post_likes += isLiked === true ? 1 : -1
     writePostsToFile(posts)
     return res.status(200).send(post)
   } catch (error) {
