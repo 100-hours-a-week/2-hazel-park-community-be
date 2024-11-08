@@ -2,91 +2,220 @@ import {
   readPostsFromFile,
   writePostsToFile,
 } from '../controllers/post-json-controller.js'
+import { readUsersFromFile } from './user-json-controller.js'
+import { loadProfileImg } from '../utils/load-profile-img.js'
+import path from 'path'
+import multer from 'multer'
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '../uploads/')
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname))
+  },
+})
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fieldSize: 25 * 1024 * 1024,
+    fileSize: 10 * 1024 * 1024,
+  },
+})
 
 export const uploadPost = (req, res) => {
-  const { title, writer, updatedAt, contents, likes, views, comments } =
-    req.body
-  const posts = readPostsFromFile()
-  const postId = posts.length + 1
+  upload.single('postImg')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+    }
+    try {
+      const { title, writer, updatedAt, contents, likes, views, comments } =
+        req.body
+      const posts = readPostsFromFile()
+      const postId = posts.length + 1
 
-  const newPost = {
-    post_id: postId,
-    post_title: title,
-    post_writer: writer,
-    post_updatedAt: updatedAt,
-    post_contents: contents,
-    post_likes: likes,
-    post_views: views,
-    post_comments: comments,
-  }
-  posts.push(newPost)
-  writePostsToFile(posts)
-  res.status(201).json({ message: '게시글 업로드 업로드 성공' })
+      if (!title || !writer || !contents) {
+        return res
+          .status(400)
+          .json({ message: '제목, 작성자, 내용을 입력해주세요.' })
+      }
 
-  // TODO: 에러 처리 추가
+      const newPost = {
+        post_id: postId,
+        post_title: title,
+        post_writer: writer,
+        post_updatedAt: updatedAt,
+        post_contents: contents,
+        post_likes: likes,
+        post_views: views,
+        post_comments: comments,
+        post_img: req.file ? req.file.filename : null,
+      }
+
+      posts.push(newPost)
+      writePostsToFile(posts)
+      res.status(201).json({ message: '게시글을 업로드 하였습니다.' })
+    } catch (error) {
+      res.status(500).json({ message: '게시글 업로드에 실패했습니다.' })
+    }
+  })
 }
 
 export const posts = (req, res) => {
-  const posts = readPostsFromFile()
-  res.status(200).send(posts)
+  try {
+    const posts = readPostsFromFile()
+    const users = readUsersFromFile()
 
-  // TODO: 에러 처리 추가
+    const postWithAuthorInfo = posts.map((post) => {
+      const writer = users.find((user) => user.user_email === post.post_writer)
+
+      const profilePicture = writer?.profile_picture
+
+      const imagePath = profilePicture
+        ? path.isAbsolute(profilePicture)
+          ? profilePicture
+          : path.join('../uploads', profilePicture)
+        : null
+
+      const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
+      return {
+        ...post,
+        post_writer: writer.user_name,
+        author_profile_picture: base64Image,
+      }
+    })
+
+    res.status(200).send(postWithAuthorInfo)
+  } catch (error) {
+    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
+  }
 }
 
 export const postDetail = (req, res) => {
-  const postId = parseInt(req.params.postId)
-  const posts = readPostsFromFile()
+  try {
+    const postId = parseInt(req.params.postId)
+    const posts = readPostsFromFile()
+    const users = readUsersFromFile()
 
-  const post = posts.find((post) => post.post_id === postId)
-  ++post.post_views
-  writePostsToFile(posts)
+    const post = posts.find((post) => post.post_id === postId)
+    if (post) {
+      const writer = users.find((user) => user.user_email === post.post_writer)
 
-  res.status(200).send(post)
+      const profilePicture = writer?.profile_picture
+      const postImg = post.post_img
 
-  // TODO: 에러 처리 추가
+      const imagePath = profilePicture
+        ? path.isAbsolute(profilePicture)
+          ? profilePicture
+          : path.join('../uploads', profilePicture)
+        : null
+
+      const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
+      if (postImg) {
+        const postImgPath = path.isAbsolute(postImg)
+          ? postImg
+          : path.join('../uploads', postImg)
+
+        const postBase64Img = postImgPath ? loadProfileImg(postImgPath) : null
+
+        const postWithAuthorInfo = {
+          ...post,
+          post_writer: writer.user_name,
+          post_img: postBase64Img,
+          author_profile_picture: base64Image,
+        }
+
+        post.post_views += 1
+        writePostsToFile(posts)
+
+        res.status(200).send(postWithAuthorInfo)
+      } else {
+        ++post.post_views
+        writePostsToFile(posts)
+
+        const postWithAuthorInfo = {
+          ...post,
+          post_writer: writer.user_name,
+          author_profile_picture: base64Image,
+        }
+
+        post.post_views += 1
+        writePostsToFile(posts)
+
+        res.status(200).send(postWithAuthorInfo)
+      }
+    } else {
+      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    }
+  } catch (error) {
+    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
+  }
 }
 
 export const editPost = (req, res) => {
-  const postId = parseInt(req.params.postId)
-  const { title, content, updatedAt } = req.body
-  const posts = readPostsFromFile()
+  upload.single('postImg')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+    }
+    const postId = parseInt(req.params.postId)
+    const { title, content, updatedAt } = req.body
+    const posts = readPostsFromFile()
 
-  const post = posts.find((post) => post.post_id === postId)
-  if (post) {
+    const post = posts.find((post) => post.post_id === postId)
+    if (!post) {
+      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    }
+
     post.post_title = title
     post.post_contents = content
     post.post_updatedAt = updatedAt
+    if (req.file) {
+      post.post_img = req.file.filename
+    }
     writePostsToFile(posts)
-    return res.status(200).json({ message: '게시글 수정 성공 야호야호' })
-  } else {
-    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
-  }
+    return res.status(200).json({ message: '게시글을 수정하였습니다.' })
+  })
 }
 
 export const deletePost = (req, res) => {
-  const postId = parseInt(req.params.postId)
-  const posts = readPostsFromFile()
+  try {
+    const postId = parseInt(req.params.postId)
+    const posts = readPostsFromFile()
 
-  const postIndex = posts.findIndex((post) => post.post_id === postId)
-  if (postIndex === -1) {
-    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    const postIndex = posts.findIndex((post) => post.post_id === postId)
+    if (postIndex === -1) {
+      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    }
+
+    posts.splice(postIndex, 1)
+    writePostsToFile(posts)
+    res.status(200).json({ message: '게시글을 삭제하였습니다.' })
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
-
-  posts.splice(postIndex, 1)
-  writePostsToFile(posts)
-  res.status(200).json({ message: '게시글 삭제 성공!' })
 }
 
 export const updateLikes = (req, res) => {
   const postId = parseInt(req.params.postId)
+  const { isLiked } = req.body
   const posts = readPostsFromFile()
 
-  const post = posts.find((post) => post.post_id === postId)
-  if (post) {
-    ++post.post_likes
+  try {
+    const post = posts.find((post) => post.post_id === postId)
+
+    if (!post) {
+      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+    }
+
+    post.post_likes += isLiked ? 1 : -1
     writePostsToFile(posts)
     return res.status(200).send(post)
-  } else {
-    return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+  } catch (error) {
+    return res.status(500).json({ message: '좋아요 업데이트에 실패했습니다.' })
   }
 }
