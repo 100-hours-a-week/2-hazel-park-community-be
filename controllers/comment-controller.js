@@ -4,6 +4,10 @@ import {
 } from './comment-json-controller.js'
 
 import { readPostsFromFile, writePostsToFile } from './post-json-controller.js'
+import { readUsersFromFile } from './user-json-controller.js'
+
+import path from 'path'
+import { loadProfileImg } from '../utils/load-profile-img.js'
 
 function checkPostID(postId) {
   if (postId <= 0) {
@@ -18,12 +22,31 @@ export const comments = (req, res) => {
     return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
   }
   const comments = readCommentsFromFile()
+  const users = readUsersFromFile()
 
   try {
     const postComments = comments.comments[postId]
 
     if (postComments) {
-      res.status(200).json(postComments)
+      const commentsWithAuthorInfo = postComments.map((comment) => {
+        const writer = users.find((user) => user.user_name === comment.writer)
+
+        const profilePicture = writer?.profile_picture
+
+        const imagePath = profilePicture
+          ? path.isAbsolute(profilePicture)
+            ? profilePicture
+            : path.join('../uploads', profilePicture)
+          : null
+
+        const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
+        return {
+          ...comment,
+          author_profile_picture: base64Image,
+        }
+      })
+      res.status(200).json(commentsWithAuthorInfo)
     } else {
       res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
     }
