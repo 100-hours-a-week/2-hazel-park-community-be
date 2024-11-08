@@ -2,91 +2,42 @@
   "comments": {
     "1": [
       {
-        "id": 2,
-        "writer": "user2",
-        "updateAt": "test-te-st te:st:st",
-        "content": "test...?"
-      },
-      {
-        "id": 3,
-        "writer": "user3",
-        "updateAt": "2024-10-26 22:23:45",
-        "content": "세 번째 댓글 내용"
-      },
-      {
-        "id": 4,
-        "writer": "test",
-        "updateAt": "test-te-st te:st:st",
-        "content": "test"
-      },
-      {
-        "id": 5,
-        "writer": "으아아아아앍",
-        "updateAt": "2024-10-31 10:41:53",
-        "content": "해치웟나"
-      },
-      {
-        "id": 6,
-        "writer": "으아아아아앍",
-        "updateAt": "2024-10-31 11:22:31",
-        "content": "해치웟니"
-      },
-      {
-        "id": 7,
-        "updateAt": "2024-11-04 15:00:50",
-        "content": "eotrmf"
-      },
-      {
-        "id": 8,
-        "writer": "test",
+        "id": 1,
+        "writer": "test@test.test",
         "updateAt": "2024-11-04 15:41:53",
         "content": "hi.."
       },
       {
-        "id": 9,
-        "writer": "test",
+        "id": 2,
+        "writer": "test@test.test",
         "updateAt": "2024-11-04 15:50:06",
         "content": "◠‿◠ㅎㅎㅎ설마!!!!"
       },
       {
-        "id": 10,
-        "writer": "test",
+        "id": 3,
+        "writer": "test@test.test",
         "updateAt": "2024-11-04 15:50:41",
         "content": "해치웠나...!!!오예"
       },
       {
-        "id": 11,
-        "writer": "hello2",
-        "updateAt": "2024-11-07 09:42:23",
-        "content": "해치웟나."
+        "id": 3,
+        "writer": "img@img.img",
+        "updateAt": "2024-11-07 13:00:41",
+        "content": "d"
       }
     ],
     "2": [
       {
         "id": 4,
-        "writer": "user4",
+        "writer": "img@img.img",
         "updateAt": "2024-10-26 22:20:10",
         "content": "네 번째 댓글 내용"
       },
       {
         "id": 5,
-        "writer": "user5",
+        "writer": "test@test.test",
         "updateAt": "2024-10-26 22:19:55",
         "content": "다섯 번째 댓글 내용"
-      }
-    ],
-    "3": [
-      {
-        "id": 7,
-        "writer": "user7",
-        "updateAt": "2024-10-26 22:10:12",
-        "content": "일곱 번째 댓글 내용"
-      },
-      {
-        "id": 8,
-        "writer": "user8",
-        "updateAt": "2024-10-26 22:05:05",
-        "content": "여덟 번째 댓글 내용"
       }
     ]
   }

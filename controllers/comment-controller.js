@@ -29,7 +29,7 @@ export const comments = (req, res) => {
 
     if (postComments) {
       const commentsWithAuthorInfo = postComments.map((comment) => {
-        const writer = users.find((user) => user.user_name === comment.writer)
+        const writer = users.find((user) => user.user_email === comment.writer)
 
         const profilePicture = writer?.profile_picture
 
@@ -43,6 +43,7 @@ export const comments = (req, res) => {
 
         return {
           ...comment,
+          writer: writer.user_name,
           author_profile_picture: base64Image,
         }
       })
