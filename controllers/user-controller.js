@@ -13,7 +13,13 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({ storage: storage })
+const upload = multer({
+  storage: storage,
+  limits: {
+    fieldSize: 25 * 1024 * 1024,
+    fileSize: 10 * 1024 * 1024,
+  },
+})
 
 export const registerUser = (req, res) => {
   upload.single('profilePic')(req, res, (err) => {
@@ -59,6 +65,7 @@ export const loginUser = (req, res) => {
   if (user) {
     const checkPw = bcrypt.compareSync(password, user.user_pw)
     if (checkPw) {
+      console.log(user.profile_picture)
       const sessionUser = {
         email: user.user_email,
         nickname: user.user_name,
@@ -69,7 +76,7 @@ export const loginUser = (req, res) => {
         const imagePath = path.isAbsolute(user.profile_picture)
           ? user.profile_picture
           : path.join('../uploads', user.profile_picture)
-        loadProfileImg(imagePath)
+        sessionUser.profilePicture = loadProfileImg(imagePath)
       }
 
       req.session.user = sessionUser
@@ -87,24 +94,33 @@ export const loginUser = (req, res) => {
 }
 
 export const patchUserName = (req, res) => {
-  const { email, nickname } = req.body
-  const users = readUsersFromFile()
+  upload.single('newProfileImg')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message })
+    }
 
-  const existingUser = users.find((user) => user.user_name === nickname)
-  if (existingUser) {
-    return res.status(400).json({ message: '중복된 닉네임 입니다.' })
-  }
+    const { email, nickname } = req.body
 
-  const user = users.find((user) => user.user_email === email)
+    const users = readUsersFromFile()
 
-  if (user) {
-    user.user_name = nickname
-    console.log(req.session.user)
-    writeUsersToFile(users)
-    res.status(200).json({ message: '닉네임이 업데이트 되었습니다.' })
-  } else {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
+    const existingUser = users.find((user) => user.user_name === nickname)
+    if (existingUser) {
+      return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+    }
+
+    const user = users.find((user) => user.user_email === email)
+
+    if (user) {
+      user.user_name = nickname
+      if (req.file) {
+        user.profile_picture = req.file.filename
+      }
+      writeUsersToFile(users)
+      res.status(200).json({ message: '닉네임이 업데이트 되었습니다.' })
+    } else {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+    }
+  })
 }
 
 export const patchUserPw = (req, res) => {
