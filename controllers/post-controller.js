@@ -156,7 +156,10 @@ export const postDetail = (req, res) => {
 }
 
 export const editPost = (req, res) => {
-  try {
+  upload.single('postImg')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: '파일 업로드에 실패했습니다.' })
+    }
     const postId = parseInt(req.params.postId)
     const { title, content, updatedAt } = req.body
     const posts = readPostsFromFile()
@@ -165,16 +168,16 @@ export const editPost = (req, res) => {
     if (!post) {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
+
     post.post_title = title
     post.post_contents = content
     post.post_updatedAt = updatedAt
+    if (req.file) {
+      post.post_img = req.file.filename
+    }
     writePostsToFile(posts)
     return res.status(200).json({ message: '게시글을 수정하였습니다.' })
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ message: '게시글 정보를 불러오지 못했습니다.' })
-  }
+  })
 }
 
 export const deletePost = (req, res) => {
