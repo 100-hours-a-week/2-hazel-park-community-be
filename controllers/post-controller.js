@@ -2,6 +2,9 @@ import {
   readPostsFromFile,
   writePostsToFile,
 } from '../controllers/post-json-controller.js'
+import { readUsersFromFile } from './user-json-controller.js'
+import { loadProfileImg } from '../utils/load-profile-img.js'
+import path from 'path'
 
 export const uploadPost = (req, res) => {
   try {
@@ -37,7 +40,29 @@ export const uploadPost = (req, res) => {
 export const posts = (req, res) => {
   try {
     const posts = readPostsFromFile()
-    res.status(200).send(posts)
+    const users = readUsersFromFile()
+
+    const postWithAuthorInfo = posts.map((post) => {
+      const writer = users.find((user) => user.user_email === post.post_writer)
+
+      const profilePicture = writer?.profile_picture
+
+      const imagePath = profilePicture
+        ? path.isAbsolute(profilePicture)
+          ? profilePicture
+          : path.join('../uploads', profilePicture)
+        : null
+
+      const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
+      return {
+        ...post,
+        post_writer: writer.user_name,
+        author_profile_picture: base64Image,
+      }
+    })
+
+    res.status(200).send(postWithAuthorInfo)
   } catch (error) {
     res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
   }
@@ -47,13 +72,35 @@ export const postDetail = (req, res) => {
   try {
     const postId = parseInt(req.params.postId)
     const posts = readPostsFromFile()
+    const users = readUsersFromFile()
 
     const post = posts.find((post) => post.post_id === postId)
     if (post) {
+      const writer = users.find((user) => user.user_email === post.post_writer)
+
+      const profilePicture = writer?.profile_picture
+
+      const imagePath = profilePicture
+        ? path.isAbsolute(profilePicture)
+          ? profilePicture
+          : path.join('../uploads', profilePicture)
+        : null
+
+      const base64Image = imagePath ? loadProfileImg(imagePath) : null
+
       ++post.post_views
       writePostsToFile(posts)
 
-      res.status(200).send(post)
+      const postWithAuthorInfo = {
+        ...post,
+        post_writer: writer.user_name,
+        author_profile_picture: base64Image,
+      }
+
+      post.post_views += 1
+      writePostsToFile(posts)
+
+      res.status(200).send(postWithAuthorInfo)
     } else {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
