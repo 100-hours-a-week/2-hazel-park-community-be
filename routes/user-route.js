@@ -2,8 +2,8 @@ import express from 'express'
 import {
   registerUser,
   loginUser,
-  patchUserName,
-  patchUserPw,
+  userInfo,
+  userPw,
   deleteUser,
   logoutUser,
 } from '../controllers/user-controller.js'
@@ -13,8 +13,8 @@ const router = express.Router()
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.post('/logout', logoutUser)
-router.patch('/patchName', patchUserName)
-router.patch('/patchPw', patchUserPw)
+router.patch('/userInfo', userInfo)
+router.patch('/userPw', userPw)
 router.delete('/delete', deleteUser)
 
 export default router
