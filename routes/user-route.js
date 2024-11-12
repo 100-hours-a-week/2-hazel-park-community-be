@@ -15,6 +15,6 @@ router.post('/login', loginUser)
 router.post('/logout', logoutUser)
 router.patch('/userInfo', userInfo)
 router.patch('/userPw', userPw)
-router.delete('/delete', deleteUser)
+router.delete('/:email', deleteUser)
 
 export default router

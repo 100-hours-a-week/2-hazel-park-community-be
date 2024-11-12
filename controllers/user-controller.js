@@ -142,7 +142,7 @@ export const userPw = (req, res) => {
 }
 
 export const deleteUser = (req, res) => {
-  const { email } = req.body
+  const email = req.params.email
   const users = readUsersFromFile()
 
   const userIndex = users.findIndex((user) => user.user_email === email)
