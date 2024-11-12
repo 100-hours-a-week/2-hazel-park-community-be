@@ -22,7 +22,7 @@ const upload = multer({
 })
 
 export const registerUser = (req, res) => {
-  upload.single('profilePic')(req, res, (err) => {
+  upload.single('profile_pic')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
@@ -71,7 +71,7 @@ export const loginUser = (req, res) => {
       const sessionUser = {
         email: user.user_email,
         nickname: user.user_name,
-        profilePicture: null,
+        profile_picture: null,
       }
 
       if (user.profile_picture) {
@@ -96,7 +96,7 @@ export const loginUser = (req, res) => {
 }
 
 export const userInfo = (req, res) => {
-  upload.single('newProfileImg')(req, res, (err) => {
+  upload.single('new_profile_img')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
