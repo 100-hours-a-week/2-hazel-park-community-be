@@ -186,7 +186,7 @@ export const editPost = (req, res) => {
 
     post.post_title = title
     post.post_contents = content
-    post.post_updatedAt = updated_at
+    post.post_updated_at = updated_at
     if (req.file) {
       post.post_img = req.file.filename
     }

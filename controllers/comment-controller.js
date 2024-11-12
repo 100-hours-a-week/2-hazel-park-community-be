@@ -59,7 +59,7 @@ export const comments = (req, res) => {
 export const uploadComment = (req, res) => {
   try {
     const postId = parseInt(req.params.postId)
-    const { writer, updatedAt, content } = req.body
+    const { writer, updated_at, content } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
@@ -75,7 +75,7 @@ export const uploadComment = (req, res) => {
     const newComment = {
       id: commentId,
       writer: writer,
-      updateAt: updatedAt,
+      updated_at: updated_at,
       content: content,
     }
 
@@ -95,7 +95,7 @@ export const uploadComment = (req, res) => {
 export const editComment = (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId)
-    const { postId, content, updatedAt } = req.body
+    const { postId, content, updated_at } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
@@ -112,7 +112,7 @@ export const editComment = (req, res) => {
     const comment = postComments.find((comment) => comment.id === commentId)
     if (comment) {
       comment.content = content
-      comment.updateAt = updatedAt
+      comment.updated_at = updated_at
       writeCommentsToFile(comments)
       res.status(200).json({ message: '댓글을 수정하였습니다.' })
     } else {

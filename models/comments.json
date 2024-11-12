@@ -4,25 +4,25 @@
       {
         "id": 1,
         "writer": "test@test.test",
-        "updateAt": "2024-11-04 15:41:53",
+        "updated_at": "2024-11-04 15:41:53",
         "content": "hi.."
       },
       {
         "id": 2,
         "writer": "test@test.test",
-        "updateAt": "2024-11-04 15:50:06",
+        "updated_at": "2024-11-04 15:50:06",
         "content": "◠‿◠ㅎㅎㅎ설마!!!!"
       },
       {
         "id": 3,
         "writer": "test@test.test",
-        "updateAt": "2024-11-04 15:50:41",
+        "updated_at": "2024-11-04 15:50:41",
         "content": "해치웠나...!!!오예"
       },
       {
         "id": 3,
         "writer": "img@img.img",
-        "updateAt": "2024-11-07 13:00:41",
+        "updated_at": "2024-11-07 13:00:41",
         "content": "d"
       }
     ],
@@ -30,19 +30,19 @@
       {
         "id": 4,
         "writer": "img@img.img",
-        "updateAt": "2024-10-26 22:20:10",
+        "updated_at": "2024-10-26 22:20:10",
         "content": "네 번째 댓글 내용"
       },
       {
         "id": 5,
         "writer": "test@test.test",
-        "updateAt": "2024-10-26 22:19:55",
+        "updated_at": "2024-10-26 22:19:55",
         "content": "다섯 번째 댓글 내용"
       },
       {
         "id": 6,
         "writer": "hazel@hazel.hazel",
-        "updateAt": "2024-11-08 16:00:14",
+        "updated_at": "2024-11-08 16:00:14",
         "content": "안ㄴㅕㅇ"
       }
     ]
