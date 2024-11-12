@@ -125,8 +125,8 @@ export const editComment = (req, res) => {
 
 export const deleteComment = (req, res) => {
   try {
+    const postId = parseInt(req.params.postId)
     const commentId = parseInt(req.params.commentId)
-    const { postId } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
