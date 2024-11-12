@@ -78,7 +78,7 @@ export const loginUser = (req, res) => {
         const imagePath = path.isAbsolute(user.profile_picture)
           ? user.profile_picture
           : path.join('../uploads', user.profile_picture)
-        sessionUser.profilePicture = loadProfileImg(imagePath)
+        sessionUser.profile_picture = loadProfileImg(imagePath)
       }
 
       req.session.user = sessionUser
