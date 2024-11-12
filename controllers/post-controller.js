@@ -32,8 +32,7 @@ export const uploadPost = (req, res) => {
         .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
     }
     try {
-      const { title, writer, updatedAt, contents, likes, views, comments } =
-        req.body
+      const { title, writer, updatedAt, contents } = req.body
       const posts = readPostsFromFile()
       const postId = posts.length + 1
 
@@ -49,9 +48,9 @@ export const uploadPost = (req, res) => {
         post_writer: writer,
         post_updatedAt: updatedAt,
         post_contents: contents,
-        post_likes: likes,
-        post_views: views,
-        post_comments: comments,
+        post_likes: 0,
+        post_views: 0,
+        post_comments: 0,
         post_img: req.file ? req.file.filename : null,
       }
 
@@ -64,7 +63,6 @@ export const uploadPost = (req, res) => {
   })
 }
 
-// post-controller.js
 export const posts = (req, res) => {
   try {
     const posts = readPostsFromFile()
