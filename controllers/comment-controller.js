@@ -162,7 +162,7 @@ export const deleteComment = (req, res) => {
     --post.post_comments
     writePostsToFile(posts)
 
-    res.status(200).json({ message: '댓글을 삭제하였습니다.' })
+    res.status(204).send()
   } catch (error) {
     return res.status(500).json({ message: '댓글을 삭제하지 못했습니다.' })
   }
