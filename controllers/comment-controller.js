@@ -9,14 +9,30 @@ import { readUsersFromFile } from './user-json-controller.js'
 import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
 
-function checkPostID(postId) {
-  if (postId <= 0) {
-    return false
-  }
-  return true
+// [jeff] 이거 한큐에 갈 수 있습니다.
+// function checkPostID(postId) {
+//  if (postId <= 0) {
+//    return false
+//  }
+//  return true
+// }
+
+/**
+ * 
+ * 주어진 postId 값이 유효한지 확인함
+ * 양의 정수인지 확인
+ * 
+ *  true: 정수이며 양수
+ *  false: 그 외
+ * 
+ */
+function isValidPostId(postId){ 
+  return Number.isInteger(postId) && postId > 0
 }
 
-export const comments = (req, res) => {
+// [jeff] getComments 와 같이 명확한 이름을 사용할 것!
+// export const comments = (req, res) => {
+export const getComments = (req, res) => {
   const postId = parseInt(req.params.postId)
   if (!checkPostID(postId)) {
     return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
