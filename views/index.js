@@ -2,6 +2,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import { expressCspHeader } from 'express-csp-header'
+import authRoutes from '../routes/auth-route.js'
 import userRoutes from '../routes/user-route.js'
 import postRoutes from '../routes/post-route.js'
 import commentRoutes from '../routes/comment-route.js'
@@ -49,6 +50,7 @@ app.use(
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 
+app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)

@@ -13,8 +13,8 @@ const router = express.Router()
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.post('/logout', logoutUser)
-router.patch('/userInfo', userInfo)
-router.patch('/userPw', userPw)
-router.delete('/delete', deleteUser)
+router.patch('/info', userInfo)
+router.patch('/password', userPw)
+router.delete('/:email', deleteUser)
 
 export default router

@@ -27,8 +27,15 @@ export const comments = (req, res) => {
   try {
     const postComments = comments.comments[postId]
 
-    if (postComments) {
-      const commentsWithAuthorInfo = postComments.map((comment) => {
+    const page = parseInt(req.query.page, 10) || 0
+    const limit = parseInt(req.query.limit, 10) || 2
+    const startIndex = page * limit
+    const endIndex = startIndex + limit
+
+    const selectedComments = postComments.slice(startIndex, endIndex)
+
+    if (selectedComments) {
+      const commentsWithAuthorInfo = selectedComments.map((comment) => {
         const writer = users.find((user) => user.user_email === comment.writer)
 
         const profilePicture = writer?.profile_picture
@@ -59,7 +66,7 @@ export const comments = (req, res) => {
 export const uploadComment = (req, res) => {
   try {
     const postId = parseInt(req.params.postId)
-    const { writer, updatedAt, content } = req.body
+    const { writer, updated_at, content } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
@@ -75,7 +82,7 @@ export const uploadComment = (req, res) => {
     const newComment = {
       id: commentId,
       writer: writer,
-      updateAt: updatedAt,
+      updated_at: updated_at,
       content: content,
     }
 
@@ -95,7 +102,7 @@ export const uploadComment = (req, res) => {
 export const editComment = (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId)
-    const { postId, content, updatedAt } = req.body
+    const { postId, content, updated_at } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
@@ -112,7 +119,7 @@ export const editComment = (req, res) => {
     const comment = postComments.find((comment) => comment.id === commentId)
     if (comment) {
       comment.content = content
-      comment.updateAt = updatedAt
+      comment.updated_at = updated_at
       writeCommentsToFile(comments)
       res.status(200).json({ message: '댓글을 수정하였습니다.' })
     } else {
@@ -125,8 +132,8 @@ export const editComment = (req, res) => {
 
 export const deleteComment = (req, res) => {
   try {
+    const postId = parseInt(req.params.postId)
     const commentId = parseInt(req.params.commentId)
-    const { postId } = req.body
     if (!checkPostID(postId)) {
       return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
     }
@@ -155,7 +162,7 @@ export const deleteComment = (req, res) => {
     --post.post_comments
     writePostsToFile(posts)
 
-    res.status(200).json({ message: '댓글을 삭제하였습니다.' })
+    res.status(204).send()
   } catch (error) {
     return res.status(500).json({ message: '댓글을 삭제하지 못했습니다.' })
   }
