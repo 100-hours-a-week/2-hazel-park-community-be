@@ -6,7 +6,7 @@
     "post_updated_at": "2023-10-29 09:20:00",
     "post_contents": "Another post here.",
     "post_likes": 4,
-    "post_views": 66,
+    "post_views": 118,
     "post_comments": 2
   },
   {
@@ -16,7 +16,7 @@
     "post_updated_at": "2023-10-30T10:30:00Z",
     "post_contents": "This is a sample post 3.",
     "post_likes": 100000,
-    "post_views": 10036,
+    "post_views": 10099,
     "post_comments": 1002,
     "post_img": "1731042020360.png"
   },
@@ -27,7 +27,7 @@
     "post_updated_at": "2024-11-07 09:43:34",
     "post_contents": "내용도 바꿔..dsfㅇ",
     "post_likes": 23,
-    "post_views": 806,
+    "post_views": 816,
     "post_comments": 10
   },
   {
@@ -48,7 +48,7 @@
     "post_updated_at": "2024-11-08 15:44:45",
     "post_contents": "hazel test",
     "post_likes": 5,
-    "post_views": 284,
+    "post_views": 294,
     "post_comments": 0,
     "post_img": null
   }

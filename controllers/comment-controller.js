@@ -27,8 +27,15 @@ export const comments = (req, res) => {
   try {
     const postComments = comments.comments[postId]
 
-    if (postComments) {
-      const commentsWithAuthorInfo = postComments.map((comment) => {
+    const page = parseInt(req.query.page, 10) || 0
+    const limit = parseInt(req.query.limit, 10) || 2
+    const startIndex = page * limit
+    const endIndex = startIndex + limit
+
+    const selectedComments = postComments.slice(startIndex, endIndex)
+
+    if (selectedComments) {
+      const commentsWithAuthorInfo = selectedComments.map((comment) => {
         const writer = users.find((user) => user.user_email === comment.writer)
 
         const profilePicture = writer?.profile_picture
