@@ -1,5 +1,18 @@
 [
+    // [jeff] JSON 은 주석이 안되지만.. 그냥 남깁니다.
+    // user 라는 키가 중복으로 나오는 경우 하나의 키로 묶는게 유지보수에 도움 됩니다.
   {
+    "user": {
+      "email": "test@test.test",
+      "pw": "$2b$10$//Cok0XqleYWdOrXHUV6f.0K5jPk5OtiGlkLyk.UhRq/s4RCFQMJa",
+      "name": "test"
+    },    
+    // 자주 등장하는 명사를 앞으로 빼주는게 나중에 리팩토링할 때 도움됩니다.
+    "url_profile": "203947923984.png"
+  },  
+
+  {
+    
     "user_email": "test@test.test",
     "user_pw": "$2b$10$//Cok0XqleYWdOrXHUV6f.0K5jPk5OtiGlkLyk.UhRq/s4RCFQMJa",
     "user_name": "test",
