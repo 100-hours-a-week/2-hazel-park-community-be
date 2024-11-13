@@ -152,7 +152,7 @@ export const deleteUser = (req, res) => {
 
   users.splice(userIndex, 1)
   writeUsersToFile(users)
-  res.status(200).json({ message: '회원 탈퇴에 성공하였습니다.' })
+  res.status(204).send()
 }
 
 export const logoutUser = (req, res) => {
