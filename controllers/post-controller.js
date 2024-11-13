@@ -207,7 +207,7 @@ export const deletePost = (req, res) => {
 
     posts.splice(postIndex, 1)
     writePostsToFile(posts)
-    res.status(200).json({ message: '게시글을 삭제하였습니다.' })
+    res.status(204).send()
   } catch (error) {
     return res
       .status(500)
