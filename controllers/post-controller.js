@@ -25,15 +25,14 @@ const upload = multer({
 })
 
 export const uploadPost = (req, res) => {
-  upload.single('postImg')(req, res, (err) => {
+  upload.single('post_img')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
         .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
     }
     try {
-      const { title, writer, updatedAt, contents, likes, views, comments } =
-        req.body
+      const { title, writer, updated_at, contents } = req.body
       const posts = readPostsFromFile()
       const postId = posts.length + 1
 
@@ -47,11 +46,11 @@ export const uploadPost = (req, res) => {
         post_id: postId,
         post_title: title,
         post_writer: writer,
-        post_updatedAt: updatedAt,
+        post_updated_at: updated_at,
         post_contents: contents,
-        post_likes: likes,
-        post_views: views,
-        post_comments: comments,
+        post_likes: 0,
+        post_views: 0,
+        post_comments: 0,
         post_img: req.file ? req.file.filename : null,
       }
 
@@ -64,7 +63,6 @@ export const uploadPost = (req, res) => {
   })
 }
 
-// post-controller.js
 export const posts = (req, res) => {
   try {
     const posts = readPostsFromFile()
@@ -171,14 +169,14 @@ export const postDetail = (req, res) => {
 }
 
 export const editPost = (req, res) => {
-  upload.single('postImg')(req, res, (err) => {
+  upload.single('post_img')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
         .json({ message: '게시글 이미지 변경에 실패했습니다.' })
     }
     const postId = parseInt(req.params.postId)
-    const { title, content, updatedAt } = req.body
+    const { title, content, updated_at } = req.body
     const posts = readPostsFromFile()
 
     const post = posts.find((post) => post.post_id === postId)
@@ -188,7 +186,7 @@ export const editPost = (req, res) => {
 
     post.post_title = title
     post.post_contents = content
-    post.post_updatedAt = updatedAt
+    post.post_updated_at = updated_at
     if (req.file) {
       post.post_img = req.file.filename
     }
@@ -209,7 +207,7 @@ export const deletePost = (req, res) => {
 
     posts.splice(postIndex, 1)
     writePostsToFile(posts)
-    res.status(200).json({ message: '게시글을 삭제하였습니다.' })
+    res.status(204).send()
   } catch (error) {
     return res
       .status(500)
@@ -219,7 +217,7 @@ export const deletePost = (req, res) => {
 
 export const updateLikes = (req, res) => {
   const postId = parseInt(req.params.postId)
-  const { isLiked } = req.body
+  const { is_liked } = req.body
   const posts = readPostsFromFile()
 
   try {
@@ -229,7 +227,7 @@ export const updateLikes = (req, res) => {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
 
-    post.post_likes += isLiked === true ? 1 : -1
+    post.post_likes += is_liked === true ? 1 : -1
     writePostsToFile(posts)
     return res.status(200).send(post)
   } catch (error) {

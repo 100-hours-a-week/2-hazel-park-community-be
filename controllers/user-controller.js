@@ -22,7 +22,7 @@ const upload = multer({
 })
 
 export const registerUser = (req, res) => {
-  upload.single('profilePic')(req, res, (err) => {
+  upload.single('profile_pic')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
@@ -71,14 +71,14 @@ export const loginUser = (req, res) => {
       const sessionUser = {
         email: user.user_email,
         nickname: user.user_name,
-        profilePicture: null,
+        profile_picture: null,
       }
 
       if (user.profile_picture) {
         const imagePath = path.isAbsolute(user.profile_picture)
           ? user.profile_picture
           : path.join('../uploads', user.profile_picture)
-        sessionUser.profilePicture = loadProfileImg(imagePath)
+        sessionUser.profile_picture = loadProfileImg(imagePath)
       }
 
       req.session.user = sessionUser
@@ -96,7 +96,7 @@ export const loginUser = (req, res) => {
 }
 
 export const userInfo = (req, res) => {
-  upload.single('newProfileImg')(req, res, (err) => {
+  upload.single('new_profile_img')(req, res, (err) => {
     if (err) {
       return res
         .status(400)
@@ -142,7 +142,7 @@ export const userPw = (req, res) => {
 }
 
 export const deleteUser = (req, res) => {
-  const { email } = req.body
+  const email = req.params.email
   const users = readUsersFromFile()
 
   const userIndex = users.findIndex((user) => user.user_email === email)
@@ -152,7 +152,7 @@ export const deleteUser = (req, res) => {
 
   users.splice(userIndex, 1)
   writeUsersToFile(users)
-  res.status(200).json({ message: '회원 탈퇴에 성공하였습니다.' })
+  res.status(204).send()
 }
 
 export const logoutUser = (req, res) => {
