@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import multer from 'multer'
 import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
+import conn from '../database/maria.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,6 +22,7 @@ const upload = multer({
   },
 })
 
+// 회원 가입
 export const registerUser = (req, res) => {
   upload.single('profile_pic')(req, res, (err) => {
     if (err) {
@@ -30,32 +32,56 @@ export const registerUser = (req, res) => {
     }
 
     const { email, password, nickname } = req.body
-    const users = readUsersFromFile()
+    console.log('요청 바디 확인')
 
-    const existingUserEmail = users.find((user) => user.user_email === email)
-    const existingUserName = users.find((user) => user.user_name === nickname)
+    // 이메일 중복 검사
+    const checkEmailQuery = 'SELECT * FROM USER WHERE email = ?'
+    conn.query(checkEmailQuery, [email], (error, results) => {
+      if (error)
+        return res.status(500).json({ message: '데이터베이스 에러', error })
 
-    if (existingUserEmail || existingUserName) {
-      if (existingUserEmail) {
+      if (results.length > 0) {
         return res.status(400).json({ message: '이미 존재하는 이메일입니다.' })
-      } else if (existingUserName) {
-        return res.status(400).json({ message: '중복된 닉네임 입니다.' })
       }
-    }
+      console.log('이메일 확인')
 
-    const hashedPw = bcrypt.hashSync(password, 10)
+      // 닉네임 중복 검사
+      const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
+      conn.query(checkNicknameQuery, [nickname], (error, results) => {
+        if (error)
+          return res.status(500).json({ message: '데이터베이스 에러', error })
 
-    const newUser = {
-      user_email: email,
-      user_pw: hashedPw,
-      user_name: nickname,
-      profile_picture: req.file ? req.file.filename : null,
-    }
+        if (results.length > 0) {
+          return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+        }
+        console.log('닉네임 확인')
 
-    users.push(newUser)
-    writeUsersToFile(users)
+        // 비밀번호 암호화
+        const hashedPw = bcrypt.hashSync(password, 10)
 
-    res.status(201).json({ message: '회원가입이 완료되었습니다.' })
+        // 유저 등록
+        const insertUserQuery = `
+          INSERT INTO USER (email, pw, name, img) 
+          VALUES (?, ?, ?, ?)
+        `
+        const profilePic = req.file ? req.file.filename : null
+        console.log('파일 확인')
+
+        conn.query(
+          insertUserQuery,
+          [email, hashedPw, nickname, profilePic],
+          (error) => {
+            if (error) {
+              console.error('회원가입 에러:', error.sqlMessage)
+              return res
+                .status(500)
+                .json({ message: '회원가입에 실패했습니다.', error })
+            }
+            res.status(201).json({ message: '회원가입이 완료되었습니다.' })
+          },
+        )
+      })
+    })
   })
 }
 
