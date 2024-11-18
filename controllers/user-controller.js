@@ -218,29 +218,28 @@ export const userPw = (req, res) => {
       )
     }
   })
-
-  // const user = users.find((user) => user.user_email === email)
-  // if (user) {
-  //   user.user_pw = bcrypt.hashSync(password, 10)
-  //   writeUsersToFile(users)
-  //   res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
-  // } else {
-  //   return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  // }
 }
 
+// 회원 탈퇴
 export const deleteUser = (req, res) => {
   const email = req.params.email
-  const users = readUsersFromFile()
 
-  const userIndex = users.findIndex((user) => user.user_email === email)
-  if (userIndex === -1) {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
+  const deleteQuery = 'DELETE FROM USER WHERE email = ?'
 
-  users.splice(userIndex, 1)
-  writeUsersToFile(users)
-  res.status(204).send()
+  conn.query(deleteQuery, [email], (error, result) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
+    }
+
+    // affectedRows가 0이면 사용자가 존재하지 않음
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+    }
+
+    // 성공적으로 삭제된 경우
+    res.status(204).send()
+  })
 }
 
 export const logoutUser = (req, res) => {
