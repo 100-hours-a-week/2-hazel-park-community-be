@@ -163,68 +163,78 @@ export const posts = (req, res) => {
   })
 }
 
+// 게시글 상세 조회
 export const postDetail = (req, res) => {
-  try {
-    const postId = parseInt(req.params.postId)
-    const posts = readPostsFromFile()
-    const users = readUsersFromFile()
+  const postId = parseInt(req.params.postId)
+  const postQuery = `
+    SELECT 
+      p.id AS post_id,
+      p.title AS post_title,
+      p.updated_at AS post_updated_at,
+      u.name AS post_writer,
+      p.contents AS post_contents,
+      p.likes AS post_likes,
+      p.views AS post_views,
+      p.comments AS post_comments,
+      p.img AS post_img,
+      u.img AS user_img
+    FROM POST p
+    LEFT JOIN USER u ON p.user_email = u.email
+    WHERE p.id = ?
+  `
 
-    const post = posts.find((post) => post.post_id === postId)
-    if (post) {
-      const writer = users.find((user) => user.user_email === post.post_writer)
+  conn.query(postQuery, [postId], (error, results) => {
+    if (error) {
+      console.error('게시글 상세 조회 중 오류:', error)
+      return res
+        .status(500)
+        .json({ message: '게시글 조회 중 오류가 발생했습니다.', error })
+    }
 
-      const profilePicture = writer?.profile_picture
-      const postImg = post.post_img
+    if (results.length > 0) {
+      const post = results[0]
 
-      const imagePath = profilePicture
-        ? path.isAbsolute(profilePicture)
-          ? profilePicture
-          : path.join('../uploads', profilePicture)
-        : null
-
-      const base64Image = imagePath ? loadProfileImg(imagePath) : null
-
-      if (postImg) {
-        const postImgPath = path.isAbsolute(postImg)
-          ? postImg
-          : path.join('../uploads', postImg)
-
-        const postBase64Img = postImgPath ? loadProfileImg(postImgPath) : null
-
-        const postWithAuthorInfo = {
-          ...post,
-          post_writer: writer.user_name,
-          post_img: postBase64Img,
-          author_profile_picture: base64Image,
-        }
-
-        post.post_views += 1
-        writePostsToFile(posts)
-
-        res.status(200).send(postWithAuthorInfo)
+      // 작성자 프로필 이미지 처리
+      if (post.user_img) {
+        const imagePath = path.isAbsolute(post.user_img)
+          ? post.user_img
+          : path.join('../uploads', post.user_img)
+        post.author_profile_picture = loadProfileImg(imagePath)
       } else {
-        ++post.post_views
-        writePostsToFile(posts)
+        post.author_profile_picture = null
+      }
 
-        const postWithAuthorInfo = {
-          ...post,
-          post_writer: writer.user_name,
-          author_profile_picture: base64Image,
+      // 게시글 이미지 처리
+      if (post.post_img) {
+        const imagePath = path.isAbsolute(post.post_img)
+          ? post.post_img
+          : path.join('../uploads', post.post_img)
+        post.post_img = loadProfileImg(imagePath)
+      } else {
+        post.post_img = null
+      }
+
+      // 조회수 업데이트
+      const updateViewsQuery = 'UPDATE POST SET views = views + 1 WHERE id = ?'
+      conn.query(updateViewsQuery, [postId], (updateError) => {
+        if (updateError) {
+          console.error('조회수 업데이트 중 오류:', updateError)
+          return res.status(500).json({
+            message: '조회수 업데이트 중 오류가 발생했습니다.',
+            error: updateError,
+          })
         }
 
-        post.post_views += 1
-        writePostsToFile(posts)
-
-        res.status(200).send(postWithAuthorInfo)
-      }
+        // 응답 전송
+        res.status(200).json(post)
+      })
     } else {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
-  } catch (error) {
-    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
-  }
+  })
 }
 
+// 게시글 수정
 export const editPost = (req, res) => {
   upload.single('post_img')(req, res, (err) => {
     if (err) {
