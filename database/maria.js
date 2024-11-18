@@ -1,7 +1,7 @@
 import maria from 'mysql'
-import dotnet from 'dotenv'
+import dotenv from 'dotenv'
 
-dotnet.config()
+dotenv.config({ path: '../.env' })
 
 const conn = maria.createConnection({
   host: process.env.DB_HOST,
