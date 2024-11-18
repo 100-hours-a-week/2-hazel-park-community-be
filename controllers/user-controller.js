@@ -186,18 +186,47 @@ export const userInfo = (req, res) => {
   })
 }
 
+// 회원 비밀번호 수정
 export const userPw = (req, res) => {
   const { email, password } = req.body
-  const users = readUsersFromFile()
 
-  const user = users.find((user) => user.user_email === email)
-  if (user) {
-    user.user_pw = bcrypt.hashSync(password, 10)
-    writeUsersToFile(users)
-    res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
-  } else {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
+  const existingUsers = 'SELECT * FROM USER WHERE email = ?'
+  conn.query(existingUsers, [email], (error, result) => {
+    if (error) {
+      console.log(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
+    }
+
+    if (result.length > 0) {
+      const updateQuery = 'UPDATE USER SET pw = ? WHERE email = ?'
+      conn.query(
+        updateQuery,
+        [bcrypt.hashSync(password, 10), email],
+        (error, result) => {
+          if (error) {
+            console.log(error)
+            return res.status(500).json({ message: error.sqlMessage, error })
+          }
+          if (result.affectedRows === 0) {
+            return res
+              .status(404)
+              .json({ message: '사용자를 찾을 수 없습니다.' })
+          } else {
+            res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
+          }
+        },
+      )
+    }
+  })
+
+  // const user = users.find((user) => user.user_email === email)
+  // if (user) {
+  //   user.user_pw = bcrypt.hashSync(password, 10)
+  //   writeUsersToFile(users)
+  //   res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
+  // } else {
+  //   return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+  // }
 }
 
 export const deleteUser = (req, res) => {
