@@ -82,47 +82,85 @@ export const uploadPost = (req, res) => {
   })
 }
 
+// 게시글 조회
 export const posts = (req, res) => {
-  try {
-    const posts = readPostsFromFile()
-    const users = readUsersFromFile()
+  // 요청된 페이지와 페이지 크기 가져오기 (기본값 설정)
+  const page = parseInt(req.query.page, 10) || 0 // 기본 0페이지 (첫 페이지)
+  const limit = parseInt(req.query.limit, 10) || 4 // 기본 4개씩 가져오기
 
-    if (posts.length === 0) {
-      return res
-        .status(200)
-        .json({ message: '게시글이 존재하지 않습니다.', data: [] })
+  // 데이터베이스에서 가져올 시작 인덱스 계산
+  const offset = page * limit
+
+  const postQuery = `
+    SELECT 
+      p.id AS post_id,
+      p.title AS post_title,
+      p.updated_at AS post_updated_at,
+      u.name AS post_writer,
+      p.contents AS post_contents,
+      p.likes AS post_likes,
+      p.views AS post_views,
+      p.comments AS post_comments,
+      p.img AS post_img
+    FROM POST p
+    LEFT JOIN USER u ON p.user_email = u.email
+    ORDER BY p.updated_at DESC
+    LIMIT ? OFFSET ?;
+  `
+
+  const totalCountQuery = `SELECT COUNT(*) AS total FROM POST;`
+
+  // 총 게시글 수 가져오기
+  conn.query(totalCountQuery, (countError, countResult) => {
+    if (countError) {
+      console.error(countError)
+      return res.status(500).json({
+        message: '총 게시글 수 조회에 실패했습니다.',
+        error: countError,
+      })
     }
 
-    const sortedPosts = [...posts].sort((a, b) => b.post_id - a.post_id)
+    const totalPosts = countResult[0].total
 
-    const page = parseInt(req.query.page, 10) || 0
-    const limit = parseInt(req.query.limit, 10) || 4
-    const startIndex = page * limit
-    const endIndex = startIndex + limit
-
-    const selectedPosts = sortedPosts.slice(startIndex, endIndex)
-
-    const postWithAuthorInfo = selectedPosts.map((post) => {
-      const writer = users.find((user) => user.user_email === post.post_writer)
-      const profilePicture = writer?.profile_picture
-      const imagePath = profilePicture
-        ? path.isAbsolute(profilePicture)
-          ? profilePicture
-          : path.join('../uploads', profilePicture)
-        : null
-      const base64Image = imagePath ? loadProfileImg(imagePath) : null
-
-      return {
-        ...post,
-        post_writer: writer?.user_name || 'Unknown',
-        author_profile_picture: base64Image,
+    // 페이지네이션을 포함한 게시글 데이터 가져오기
+    conn.query(postQuery, [limit, offset], (error, results) => {
+      if (error) {
+        console.error(error)
+        return res
+          .status(500)
+          .json({ message: '게시글 정보를 불러오지 못했습니다.', error })
       }
-    })
 
-    res.status(200).json(postWithAuthorInfo)
-  } catch (error) {
-    res.status(500).json({ message: '게시글 정보를 불러오지 못했습니다.' })
-  }
+      if (results.length === 0) {
+        return res.status(200).json({
+          message: '게시글이 존재하지 않습니다.',
+          posts: [],
+          pagination: { total: totalPosts, page, limit },
+        })
+      }
+
+      // 결과 데이터 가공
+      const posts = results.map((post) => ({
+        id: post.post_id,
+        title: post.post_title,
+        updated_at: post.post_updated_at,
+        writer: post.post_writer || 'Unknown',
+        contents: post.post_contents,
+        likes: post.post_likes,
+        views: post.post_views,
+        comments: post.post_comments,
+        img: post.post_img
+          ? loadProfileImg(`../uploads/${post.post_img}`)
+          : null,
+      }))
+
+      res.status(200).json({
+        message: '게시글 목록 조회 성공',
+        posts: posts,
+        pagination: { total: totalPosts, page, limit },
+      })
+    })
+  })
 }
 
 export const postDetail = (req, res) => {
