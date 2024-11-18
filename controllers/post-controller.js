@@ -6,6 +6,7 @@ import { readUsersFromFile } from './user-json-controller.js'
 import { loadProfileImg } from '../utils/load-profile-img.js'
 import path from 'path'
 import multer from 'multer'
+import conn from '../database/maria.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -24,6 +25,7 @@ const upload = multer({
   },
 })
 
+// 게시글 등록
 export const uploadPost = (req, res) => {
   upload.single('post_img')(req, res, (err) => {
     if (err) {
@@ -31,33 +33,50 @@ export const uploadPost = (req, res) => {
         .status(400)
         .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
     }
+
     try {
       const { title, writer, updated_at, contents } = req.body
-      const posts = readPostsFromFile()
-      const postId = posts.length + 1
 
+      // 입력 값 검증
       if (!title || !writer || !contents) {
         return res
           .status(400)
           .json({ message: '제목, 작성자, 내용을 입력해주세요.' })
       }
 
-      const newPost = {
-        post_id: postId,
-        post_title: title,
-        post_writer: writer,
-        post_updated_at: updated_at,
-        post_contents: contents,
-        post_likes: 0,
-        post_views: 0,
-        post_comments: 0,
-        post_img: req.file ? req.file.filename : null,
-      }
+      const likes = 0
+      const views = 0
+      const comments = 0
 
-      posts.push(newPost)
-      writePostsToFile(posts)
-      res.status(201).json({ message: '게시글을 업로드 하였습니다.' })
+      // 이미지 파일 처리
+      const img = req.file ? req.file.filename : null
+
+      const uploadQuery = `
+        INSERT INTO POST 
+        (title, updated_at, user_email, contents, likes, views, comments, img) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `
+      const queryParams = [
+        title,
+        updated_at,
+        writer,
+        contents,
+        likes,
+        views,
+        comments,
+        img,
+      ]
+
+      conn.query(uploadQuery, queryParams, (error, result) => {
+        if (error) {
+          console.error(error)
+          return res.status(500).json({ message: error.sqlMessage, error })
+        }
+
+        res.status(201).json({ message: '게시글을 업로드 하였습니다.' })
+      })
     } catch (error) {
+      console.error(error)
       res.status(500).json({ message: '게시글 업로드에 실패했습니다.' })
     }
   })
