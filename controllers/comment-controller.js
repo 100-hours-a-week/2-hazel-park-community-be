@@ -73,38 +73,64 @@ export const comments = (req, res) => {
   })
 }
 
+// 댓글 등록
 export const uploadComment = (req, res) => {
   try {
     const postId = parseInt(req.params.postId)
     const { writer, updated_at, content } = req.body
-    if (!checkPostID(postId)) {
-      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
-    }
-    const comments = readCommentsFromFile()
 
-    const postComments = comments.comments[postId] || []
-    const lastComment = postComments[postComments.length - 1]
-    const commentId = lastComment ? lastComment.id + 1 : 1
+    // Post ID 유효성 확인
+    const checkPostQuery = 'SELECT id FROM POST WHERE id = ?'
+    conn.query(checkPostQuery, [postId], (checkError, checkResults) => {
+      if (checkError) {
+        console.error('Post ID 확인 중 오류:', checkError)
+        return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
+      }
 
-    const posts = readPostsFromFile()
-    const post = posts.find((post) => post.post_id === postId)
+      if (checkResults.length === 0) {
+        return res
+          .status(400)
+          .json({ message: '올바르지 않은 post ID 입니다.' })
+      }
 
-    const newComment = {
-      id: commentId,
-      writer: writer,
-      updated_at: updated_at,
-      content: content,
-    }
+      // 댓글 삽입
+      const insertCommentQuery = `
+        INSERT INTO COMMENT (post_id, user_email, updated_at, contents)
+        VALUES (?, ?, ?, ?)
+      `
+      conn.query(
+        insertCommentQuery,
+        [postId, writer, updated_at, content],
+        (insertError, insertResults) => {
+          if (insertError) {
+            console.error('댓글 등록 중 오류:', insertError)
+            return res
+              .status(500)
+              .json({ message: '댓글 등록에 실패하였습니다.' })
+          }
 
-    postComments.push(newComment)
-    comments.comments[postId] = postComments
-    writeCommentsToFile(comments)
+          // 게시글 댓글 수 증가
+          const updatePostQuery = `
+          UPDATE POST
+          SET comments = comments + 1
+          WHERE id = ?
+        `
+          conn.query(updatePostQuery, [postId], (updateError) => {
+            if (updateError) {
+              console.error('댓글 수 업데이트 중 오류:', updateError)
+              return res
+                .status(500)
+                .json({ message: '댓글 등록에 실패하였습니다.' })
+            }
 
-    ++post.post_comments
-    writePostsToFile(posts)
-
-    res.status(201).json({ message: '댓글을 등록하였습니다.' })
+            // 응답 전송
+            res.status(201).json({ message: '댓글을 등록하였습니다.' })
+          })
+        },
+      )
+    })
   } catch (error) {
+    console.error('댓글 등록 중 예외 발생:', error)
     return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
   }
 }
