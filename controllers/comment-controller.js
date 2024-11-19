@@ -8,6 +8,7 @@ import { readUsersFromFile } from './user-json-controller.js'
 
 import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
+import conn from '../database/maria.js'
 
 function checkPostID(postId) {
   if (postId <= 0) {
@@ -16,51 +17,60 @@ function checkPostID(postId) {
   return true
 }
 
+// 댓글 조회
 export const comments = (req, res) => {
   const postId = parseInt(req.params.postId)
   if (!checkPostID(postId)) {
     return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
   }
-  const comments = readCommentsFromFile()
-  const users = readUsersFromFile()
 
-  try {
-    const postComments = comments.comments[postId]
+  // 요청된 페이지와 페이지 크기 가져오기 (기본값 설정)
+  const page = parseInt(req.query.page, 10) || 0 // 기본 0페이지 (첫 페이지)
+  const limit = parseInt(req.query.limit, 10) || 2 // 기본 2개씩 가져오기
 
-    const page = parseInt(req.query.page, 10) || 0
-    const limit = parseInt(req.query.limit, 10) || 2
-    const startIndex = page * limit
-    const endIndex = startIndex + limit
+  // 데이터베이스에서 가져올 시작 인덱스 계산
+  const offset = page * limit
 
-    const selectedComments = postComments.slice(startIndex, endIndex)
+  const commentQuery = `
+  SELECT 
+    c.id,
+    u.name,
+    c.updated_at,
+    c.contents,
+    u.img
+  FROM COMMENT c
+  LEFT JOIN USER u ON c.user_email = u.email
+  ORDER BY c.updated_at DESC
+  LIMIT ? OFFSET ?;
+`
 
-    if (selectedComments) {
-      const commentsWithAuthorInfo = selectedComments.map((comment) => {
-        const writer = users.find((user) => user.user_email === comment.writer)
-
-        const profilePicture = writer?.profile_picture
-
-        const imagePath = profilePicture
-          ? path.isAbsolute(profilePicture)
-            ? profilePicture
-            : path.join('../uploads', profilePicture)
-          : null
-
-        const base64Image = imagePath ? loadProfileImg(imagePath) : null
-
-        return {
-          ...comment,
-          writer: writer.user_name,
-          author_profile_picture: base64Image,
-        }
-      })
-      res.status(200).json(commentsWithAuthorInfo)
-    } else {
-      res.status(200).json({ message: '댓글이 존재하지 않습니다.', data: null })
+  conn.query(commentQuery, [limit, offset], (error, results) => {
+    if (error) {
+      console.error(error)
+      return res
+        .status(500)
+        .json({ message: '댓글 조회에 실패했습니다.', error })
     }
-  } catch (error) {
-    res.status(500).json({ message: '댓글 조회에 실패했습니다.' })
-  }
+
+    if (results.length === 0) {
+      return res.status(200).json({
+        message: '댓글이 존재하지 않습니다.',
+        comments: [],
+      })
+    }
+
+    const comments = results.map((comment) => ({
+      id: comment.id,
+      writer: comment.name,
+      updated_at: comment.updated_at,
+      content: comment.contents,
+      author_profile_picture: comment.img
+        ? loadProfileImg(`../uploads/${comment.img}`)
+        : null,
+    }))
+
+    res.status(200).json(comments)
+  })
 }
 
 export const uploadComment = (req, res) => {

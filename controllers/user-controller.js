@@ -116,7 +116,6 @@ export const loginUser = (req, res) => {
             : path.join('../uploads', user.img)
           sessionUser.profile_picture = loadProfileImg(imagePath)
         }
-        console.log(sessionUser)
 
         req.session.user = sessionUser
         res.status(200).json({
