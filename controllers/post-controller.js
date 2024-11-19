@@ -101,7 +101,7 @@ export const posts = (req, res) => {
       p.likes AS post_likes,
       p.views AS post_views,
       p.comments AS post_comments,
-      p.img AS post_img
+      u.img AS post_img
     FROM POST p
     LEFT JOIN USER u ON p.user_email = u.email
     ORDER BY p.updated_at DESC
@@ -238,27 +238,43 @@ export const postDetail = (req, res) => {
 export const editPost = (req, res) => {
   upload.single('post_img')(req, res, (err) => {
     if (err) {
-      return res
-        .status(400)
-        .json({ message: '게시글 이미지 변경에 실패했습니다.' })
+      return res.status(400).json({
+        message: '게시글 이미지 변경에 실패했습니다.',
+        error: err.message,
+      })
     }
+
     const postId = parseInt(req.params.postId)
     const { title, content, updated_at } = req.body
-    const posts = readPostsFromFile()
+    const postImg = req.file ? `${req.file.filename}` : null
 
-    const post = posts.find((post) => post.post_id === postId)
-    if (!post) {
-      return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
-    }
+    const updateQuery = `
+      UPDATE POST
+      SET title = ?, contents = ?, updated_at = ?, img = ?
+      WHERE id = ?
+    `
 
-    post.post_title = title
-    post.post_contents = content
-    post.post_updated_at = updated_at
-    if (req.file) {
-      post.post_img = req.file.filename
-    }
-    writePostsToFile(posts)
-    return res.status(200).json({ message: '게시글을 수정하였습니다.' })
+    conn.query(
+      updateQuery,
+      [title, content, updated_at, postImg, postId],
+      (error, results) => {
+        if (error) {
+          console.error('게시글 수정 중 오류:', error)
+          return res.status(500).json({
+            message: '게시글 수정에 실패했습니다.',
+            error: error.sqlMessage,
+          })
+        }
+
+        if (results.affectedRows === 0) {
+          return res
+            .status(404)
+            .json({ message: '게시글이 존재하지 않습니다.' })
+        }
+
+        res.status(200).json({ message: '게시글을 수정하였습니다.' })
+      },
+    )
   })
 }
 
