@@ -135,33 +135,71 @@ export const uploadComment = (req, res) => {
   }
 }
 
+// 댓글 수정
 export const editComment = (req, res) => {
   try {
     const commentId = parseInt(req.params.commentId)
     const { postId, content, updated_at } = req.body
-    if (!checkPostID(postId)) {
-      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
-    }
-    const comments = readCommentsFromFile()
 
-    const postComments = comments.comments[postId]
+    // Post ID 유효성 확인
+    const checkPostQuery = 'SELECT id FROM POST WHERE id = ?'
+    conn.query(checkPostQuery, [postId], (checkError, checkResults) => {
+      if (checkError) {
+        console.error('Post ID 확인 중 오류:', checkError)
+        return res.status(500).json({ message: '댓글 수정을 실패하였습니다.' })
+      }
 
-    if (!postComments) {
-      return res
-        .status(404)
-        .json({ message: '해당 포스트에 댓글이 존재하지 않습니다.' })
-    }
+      if (checkResults.length === 0) {
+        return res
+          .status(400)
+          .json({ message: '올바르지 않은 post ID 입니다.' })
+      }
 
-    const comment = postComments.find((comment) => comment.id === commentId)
-    if (comment) {
-      comment.content = content
-      comment.updated_at = updated_at
-      writeCommentsToFile(comments)
-      res.status(200).json({ message: '댓글을 수정하였습니다.' })
-    } else {
-      return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
-    }
+      // 댓글 유효성 확인
+      const checkCommentQuery =
+        'SELECT id FROM COMMENT WHERE id = ? AND post_id = ?'
+      conn.query(
+        checkCommentQuery,
+        [commentId, postId],
+        (commentError, commentResults) => {
+          if (commentError) {
+            console.error('댓글 확인 중 오류:', commentError)
+            return res
+              .status(500)
+              .json({ message: '댓글 수정을 실패하였습니다.' })
+          }
+
+          if (commentResults.length === 0) {
+            return res
+              .status(404)
+              .json({ message: '댓글이 존재하지 않습니다.' })
+          }
+
+          // 댓글 수정
+          const updateCommentQuery = `
+          UPDATE COMMENT
+          SET contents = ?, updated_at = ?
+          WHERE id = ? AND post_id = ?
+        `
+          conn.query(
+            updateCommentQuery,
+            [content, updated_at, commentId, postId],
+            (updateError) => {
+              if (updateError) {
+                console.error('댓글 수정 중 오류:', updateError)
+                return res
+                  .status(500)
+                  .json({ message: '댓글 수정을 실패하였습니다.' })
+              }
+
+              res.status(200).json({ message: '댓글을 수정하였습니다.' })
+            },
+          )
+        },
+      )
+    })
   } catch (error) {
+    console.error('댓글 수정 중 예외 발생:', error)
     return res.status(500).json({ message: '댓글 정보를 불러오지 못했습니다.' })
   }
 }
