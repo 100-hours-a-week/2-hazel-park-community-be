@@ -278,24 +278,26 @@ export const editPost = (req, res) => {
   })
 }
 
+// 게시글 삭제
 export const deletePost = (req, res) => {
-  try {
-    const postId = parseInt(req.params.postId)
-    const posts = readPostsFromFile()
+  const postId = parseInt(req.params.postId)
 
-    const postIndex = posts.findIndex((post) => post.post_id === postId)
-    if (postIndex === -1) {
+  const deleteQuery = 'DELETE FROM POST WHERE id = ?'
+
+  conn.query(deleteQuery, [postId], (error, result) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
+    }
+
+    // affectedRows가 0이면 게시글이 존재하지 않음
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
 
-    posts.splice(postIndex, 1)
-    writePostsToFile(posts)
+    // 성공적으로 삭제된 경우
     res.status(204).send()
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ message: '게시글 정보를 불러오지 못했습니다.' })
-  }
+  })
 }
 
 export const updateLikes = (req, res) => {
