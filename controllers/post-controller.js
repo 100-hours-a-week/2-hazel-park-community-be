@@ -300,22 +300,58 @@ export const deletePost = (req, res) => {
   })
 }
 
+// 게시글 좋아요
 export const updateLikes = (req, res) => {
-  const postId = parseInt(req.params.postId)
-  const { is_liked } = req.body
-  const posts = readPostsFromFile()
+  const postId = parseInt(req.params.postId) // 요청에서 postId 가져오기
+  const { is_liked } = req.body // 요청에서 is_liked 값 가져오기
 
-  try {
-    const post = posts.find((post) => post.post_id === postId)
+  if (typeof is_liked !== 'boolean') {
+    return res.status(400).json({ message: 'is_liked 값이 올바르지 않습니다.' })
+  }
 
-    if (!post) {
+  const updateQuery = 'UPDATE POST SET likes = likes + ? WHERE id = ?'
+  const selectQuery = 'SELECT * FROM POST WHERE id = ?'
+  const changeValue = is_liked ? 1 : -1 // is_liked에 따라 +1 또는 -1 설정
+
+  // 데이터베이스 업데이트
+  conn.query(updateQuery, [changeValue, postId], (error, updateResult) => {
+    if (error) {
+      console.error('좋아요 업데이트 실패:', error)
+      return res
+        .status(500)
+        .json({ message: '좋아요 업데이트에 실패했습니다.' })
+    }
+
+    if (updateResult.affectedRows === 0) {
       return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
     }
 
-    post.post_likes += is_liked === true ? 1 : -1
-    writePostsToFile(posts)
-    return res.status(200).send(post)
-  } catch (error) {
-    return res.status(500).json({ message: '좋아요 업데이트에 실패했습니다.' })
-  }
+    // 업데이트 후 최신 데이터 가져오기
+    conn.query(selectQuery, [postId], (selectError, selectResult) => {
+      if (selectError) {
+        console.error('좋아요 조회 실패:', selectError)
+        return res
+          .status(500)
+          .json({ message: '업데이트된 데이터를 조회할 수 없습니다.' })
+      }
+
+      if (selectResult.length === 0) {
+        return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+      }
+
+      const post = selectResult[0]
+      const response = {
+        post_title: post.title,
+        post_writer: post.writer,
+        post_updated_at: post.updated_at,
+        post_contents: post.contents,
+        post_likes: post.likes,
+        post_views: post.views,
+        post_comments: post.comments,
+        post_img: post.img,
+      }
+
+      return res.status(200).json(response) // 업데이트된 게시글 반환
+    })
+  })
 }
