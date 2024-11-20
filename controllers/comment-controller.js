@@ -40,7 +40,7 @@ export const comments = (req, res) => {
     u.img
   FROM COMMENT c
   LEFT JOIN USER u ON c.user_email = u.email
-  ORDER BY c.updated_at DESC
+  ORDER BY c.updated_at ASC
   LIMIT ? OFFSET ?;
 `
 
@@ -204,40 +204,25 @@ export const editComment = (req, res) => {
   }
 }
 
+// 댓글 삭제
 export const deleteComment = (req, res) => {
-  try {
-    const postId = parseInt(req.params.postId)
-    const commentId = parseInt(req.params.commentId)
-    if (!checkPostID(postId)) {
-      return res.status(400).json({ message: '올바르지 않은 post ID 입니다.' })
-    }
-    const comments = readCommentsFromFile()
-    const postComments = comments.comments[postId]
-    const posts = readPostsFromFile()
-    const post = posts.find((post) => post.post_id === postId)
+  const postId = parseInt(req.params.postId)
+  const commentId = parseInt(req.params.commentId)
 
-    if (!postComments) {
-      return res
-        .status(404)
-        .json({ message: '해당 포스트에 댓글이 존재하지 않습니다.' })
+  const deleteQuery = 'DELETE FROM COMMENT WHERE id = ? AND post_id = ?'
+
+  conn.query(deleteQuery, [commentId, postId], (error, result) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
     }
 
-    const commentIndex = postComments.findIndex(
-      (comment) => comment.id === commentId,
-    )
-    if (commentIndex === -1) {
+    // affectedRows가 0이면 댓글이 존재하지 않음
+    if (result.affectedRows === 0) {
       return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
     }
 
-    postComments.splice(commentIndex, 1)
-    comments.comments[postId] = postComments
-    writeCommentsToFile(comments)
-
-    --post.post_comments
-    writePostsToFile(posts)
-
+    // 성공적으로 삭제된 경우
     res.status(204).send()
-  } catch (error) {
-    return res.status(500).json({ message: '댓글을 삭제하지 못했습니다.' })
-  }
+  })
 }
