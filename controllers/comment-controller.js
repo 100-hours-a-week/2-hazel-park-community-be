@@ -222,6 +222,19 @@ export const deleteComment = (req, res) => {
       return res.status(404).json({ message: '댓글이 존재하지 않습니다.' })
     }
 
+    // 게시글 댓글 수 감소
+    const updatePostQuery = `
+    UPDATE POST
+    SET comments = comments - 1
+    WHERE id = ?
+  `
+    conn.query(updatePostQuery, [postId], (updateError) => {
+      if (updateError) {
+        console.error('댓글 수 업데이트 중 오류:', updateError)
+        return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
+      }
+    })
+
     // 성공적으로 삭제된 경우
     res.status(204).send()
   })
