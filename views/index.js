@@ -9,11 +9,13 @@ import commentRoutes from '../routes/comment-route.js'
 import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import dotenv from 'dotenv'
+import maria from '../database/maria.js'
 
 dotenv.config({ path: '../.env' })
 const app = express()
 const PORT = 3000
 const secret_key = process.env.SECRET_KEY
+//maria.connect()
 
 app.use(
   cors({
