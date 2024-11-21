@@ -40,11 +40,12 @@ export const comments = (req, res) => {
     u.img
   FROM COMMENT c
   LEFT JOIN USER u ON c.user_email = u.email
+  WHERE c.post_id = ?
   ORDER BY c.updated_at ASC
   LIMIT ? OFFSET ?;
 `
 
-  conn.query(commentQuery, [limit, offset], (error, results) => {
+  conn.query(commentQuery, [postId, limit, offset], (error, results) => {
     if (error) {
       console.error(error)
       return res
