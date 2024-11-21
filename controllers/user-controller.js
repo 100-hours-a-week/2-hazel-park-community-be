@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import multer from 'multer'
 import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
+import conn from '../database/maria.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,6 +22,7 @@ const upload = multer({
   },
 })
 
+// 회원 가입
 export const registerUser = (req, res) => {
   upload.single('profile_pic')(req, res, (err) => {
     if (err) {
@@ -30,73 +32,109 @@ export const registerUser = (req, res) => {
     }
 
     const { email, password, nickname } = req.body
-    const users = readUsersFromFile()
+    console.log('요청 바디 확인')
 
-    const existingUserEmail = users.find((user) => user.user_email === email)
-    const existingUserName = users.find((user) => user.user_name === nickname)
+    // 이메일 중복 검사
+    const checkEmailQuery = 'SELECT * FROM USER WHERE email = ?'
+    conn.query(checkEmailQuery, [email], (error, results) => {
+      if (error)
+        return res.status(500).json({ message: '데이터베이스 에러', error })
 
-    if (existingUserEmail || existingUserName) {
-      if (existingUserEmail) {
+      if (results.length > 0) {
         return res.status(400).json({ message: '이미 존재하는 이메일입니다.' })
-      } else if (existingUserName) {
-        return res.status(400).json({ message: '중복된 닉네임 입니다.' })
       }
-    }
+      console.log('이메일 확인')
 
-    const hashedPw = bcrypt.hashSync(password, 10)
+      // 닉네임 중복 검사
+      const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
+      conn.query(checkNicknameQuery, [nickname], (error, results) => {
+        if (error)
+          return res.status(500).json({ message: '데이터베이스 에러', error })
 
-    const newUser = {
-      user_email: email,
-      user_pw: hashedPw,
-      user_name: nickname,
-      profile_picture: req.file ? req.file.filename : null,
-    }
+        if (results.length > 0) {
+          return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+        }
+        console.log('닉네임 확인')
 
-    users.push(newUser)
-    writeUsersToFile(users)
+        // 비밀번호 암호화
+        const hashedPw = bcrypt.hashSync(password, 10)
 
-    res.status(201).json({ message: '회원가입이 완료되었습니다.' })
+        // 유저 등록
+        const insertUserQuery = `
+          INSERT INTO USER (email, pw, name, img) 
+          VALUES (?, ?, ?, ?)
+        `
+        const profilePic = req.file ? req.file.filename : null
+        console.log('파일 확인')
+
+        conn.query(
+          insertUserQuery,
+          [email, hashedPw, nickname, profilePic],
+          (error) => {
+            if (error) {
+              console.error('회원가입 에러:', error.sqlMessage)
+              return res
+                .status(500)
+                .json({ message: '회원가입에 실패했습니다.', error })
+            }
+            res.status(201).json({ message: '회원가입이 완료되었습니다.' })
+          },
+        )
+      })
+    })
   })
 }
 
+// 로그인
 export const loginUser = (req, res) => {
   const { email, password } = req.body
-  const users = readUsersFromFile()
 
-  const user = users.find((user) => user.user_email === email)
-  if (user) {
-    const checkPw = bcrypt.compareSync(password, user.user_pw)
-    if (checkPw) {
-      console.log(user.profile_picture)
-      const sessionUser = {
-        email: user.user_email,
-        nickname: user.user_name,
-        profile_picture: null,
-      }
-
-      if (user.profile_picture) {
-        const imagePath = path.isAbsolute(user.profile_picture)
-          ? user.profile_picture
-          : path.join('../uploads', user.profile_picture)
-        sessionUser.profile_picture = loadProfileImg(imagePath)
-      }
-
-      req.session.user = sessionUser
-      res.status(200).json({
-        message: '로그인에 성공하였습니다.',
-        user: req.session.user,
-      })
-      console.log('login session:', req.session)
-    } else {
-      res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
+  // 해당 이메일 값을 갖는 유저가 존재하는지 검색
+  const checkUserInfo = 'SELECT * FROM USER WHERE email = ?'
+  conn.query(checkUserInfo, [email], (error, result) => {
+    if (error) {
+      console.log(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
     }
-  } else {
-    res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
+
+    // 유저가 존재하는 경우
+    if (result.length > 0) {
+      // 비밀번호가 일치하는지 검사
+      const checkPw = bcrypt.compareSync(password, result[0].pw)
+      if (checkPw) {
+        const user = result[0]
+        const sessionUser = {
+          email: user.email,
+          nickname: user.name,
+          profile_picture: null,
+        }
+
+        // 유저의 프로필 이미지가 존재하는 경우
+        if (user.img) {
+          const imagePath = path.isAbsolute(user.img)
+            ? user.img
+            : path.join('../uploads', user.img)
+          sessionUser.profile_picture = loadProfileImg(imagePath)
+        }
+
+        req.session.user = sessionUser
+        res.status(200).json({
+          message: '로그인에 성공하였습니다.',
+          user: sessionUser,
+        })
+      } else {
+        res.status(400).json({ message: '비밀번호가 틀렸습니다.' })
+      }
+    } else {
+      res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+    }
+  })
 }
 
+// 회원 닉네임 or 프로필 이미지 수정
 export const userInfo = (req, res) => {
-  upload.single('new_profile_img')(req, res, (err) => {
+  // 프로필 이미지 업로드 처리
+  upload.single('new_profile_img')(req, res, async (err) => {
     if (err) {
       return res
         .status(400)
@@ -105,54 +143,102 @@ export const userInfo = (req, res) => {
 
     const { email, nickname } = req.body
 
-    const users = readUsersFromFile()
+    const existingUsers = 'SELECT * FROM USER WHERE name = ? AND email != ?'
+    conn.query(existingUsers, [nickname, email], (error, result) => {
+      if (error) {
+        console.log(error)
+        return res.status(500).json({ message: error.sqlMessage, error })
+      }
 
-    const existingUser = users.find((user) => user.user_name === nickname)
-    if (existingUser) {
-      return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+      if (result.length > 0) {
+        return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+      }
+
+      // 업데이트할 필드와 값을 동적으로 구성
+      let updateQuery = 'UPDATE USER SET name = ?'
+      let queryParams = [nickname]
+
+      // 프로필 이미지가 있는 경우 쿼리에 추가
+      if (req.file) {
+        updateQuery += ', img = ?'
+        queryParams.push(req.file.filename)
+      }
+
+      // WHERE 절 추가
+      updateQuery += ' WHERE email = ?'
+      queryParams.push(email)
+
+      conn.query(updateQuery, queryParams, (error, result) => {
+        if (error) {
+          console.log(error)
+          return res.status(500).json({ message: error.sqlMessage, error })
+        }
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+        } else {
+          res
+            .status(200)
+            .json({ message: '사용자 정보가 업데이트 되었습니다.' })
+        }
+      })
+    })
+  })
+}
+
+// 회원 비밀번호 수정
+export const userPw = (req, res) => {
+  const { email, password } = req.body
+
+  const existingUsers = 'SELECT * FROM USER WHERE email = ?'
+  conn.query(existingUsers, [email], (error, result) => {
+    if (error) {
+      console.log(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
     }
 
-    const user = users.find((user) => user.user_email === email)
-
-    if (user) {
-      user.user_name = nickname
-      if (req.file) {
-        user.profile_picture = req.file.filename
-      }
-      writeUsersToFile(users)
-      res.status(200).json({ message: '사용자 정보가 업데이트 되었습니다.' })
-    } else {
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+    if (result.length > 0) {
+      const updateQuery = 'UPDATE USER SET pw = ? WHERE email = ?'
+      conn.query(
+        updateQuery,
+        [bcrypt.hashSync(password, 10), email],
+        (error, result) => {
+          if (error) {
+            console.log(error)
+            return res.status(500).json({ message: error.sqlMessage, error })
+          }
+          if (result.affectedRows === 0) {
+            return res
+              .status(404)
+              .json({ message: '사용자를 찾을 수 없습니다.' })
+          } else {
+            res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
+          }
+        },
+      )
     }
   })
 }
 
-export const userPw = (req, res) => {
-  const { email, password } = req.body
-  const users = readUsersFromFile()
-
-  const user = users.find((user) => user.user_email === email)
-  if (user) {
-    user.user_pw = bcrypt.hashSync(password, 10)
-    writeUsersToFile(users)
-    res.status(200).json({ message: '비밀번호가 업데이트 되었습니다.' })
-  } else {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
-}
-
+// 회원 탈퇴
 export const deleteUser = (req, res) => {
   const email = req.params.email
-  const users = readUsersFromFile()
 
-  const userIndex = users.findIndex((user) => user.user_email === email)
-  if (userIndex === -1) {
-    return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-  }
+  const deleteQuery = 'DELETE FROM USER WHERE email = ?'
 
-  users.splice(userIndex, 1)
-  writeUsersToFile(users)
-  res.status(204).send()
+  conn.query(deleteQuery, [email], (error, result) => {
+    if (error) {
+      console.error(error)
+      return res.status(500).json({ message: error.sqlMessage, error })
+    }
+
+    // affectedRows가 0이면 사용자가 존재하지 않음
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+    }
+
+    // 성공적으로 삭제된 경우
+    res.status(204).send()
+  })
 }
 
 export const logoutUser = (req, res) => {
