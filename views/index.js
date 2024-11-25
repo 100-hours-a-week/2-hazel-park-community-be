@@ -57,6 +57,12 @@ app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
 
+app.use(express.static('/home/ubuntu/2-hazel-park-community-fe/html'))
+
+app.get('/', (req, res) => {
+  res.sendFile('/home/ubuntu/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
+})
+
 app.listen(PORT, () => {
   console.log(`server is running at ${PORT}`)
 })
