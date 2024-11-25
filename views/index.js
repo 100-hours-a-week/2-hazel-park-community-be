@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import dotenv from 'dotenv'
 import maria from '../database/maria.js'
+import path from 'path'
 
 dotenv.config({ path: '../.env' })
 const app = express()
