@@ -104,7 +104,7 @@ export const posts = (req, res) => {
       u.img AS post_img
     FROM POST p
     LEFT JOIN USER u ON p.user_email = u.email
-    ORDER BY p.updated_at DESC
+    ORDER BY p.id DESC
     LIMIT ? OFFSET ?;
   `
 
