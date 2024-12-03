@@ -1,12 +1,3 @@
-import {
-  readCommentsFromFile,
-  writeCommentsToFile,
-} from './comment-json-controller.js'
-
-import { readPostsFromFile, writePostsToFile } from './post-json-controller.js'
-import { readUsersFromFile } from './user-json-controller.js'
-
-import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
 import conn from '../database/maria.js'
 
@@ -66,7 +57,9 @@ export const comments = (req, res) => {
       updated_at: comment.updated_at,
       content: comment.contents,
       author_profile_picture: comment.img
-        ? loadProfileImg(`../uploads/${comment.img}`)
+        ? comment.img.startWith('http')
+          ? comment.img
+          : loadProfileImg(`../uploads/${comment.img}`)
         : null,
     }))
 
