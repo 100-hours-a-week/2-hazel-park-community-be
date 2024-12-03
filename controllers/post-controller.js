@@ -245,7 +245,10 @@ export const editPost = (req, res) => {
 
     const postId = parseInt(req.params.postId)
     const { title, content, updated_at } = req.body
-    const postImg = req.file ? `${req.file.filename}` : null
+    let postImg = null
+    if (req.file) {
+      postImg = uploadImageToS3(req.file)
+    }
 
     const updateQuery = `
       UPDATE POST
