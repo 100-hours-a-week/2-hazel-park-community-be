@@ -57,7 +57,7 @@ export const comments = (req, res) => {
       updated_at: comment.updated_at,
       content: comment.contents,
       author_profile_picture: comment.img
-        ? comment.img.startWith('http')
+        ? comment.img.startsWith('http')
           ? comment.img
           : loadProfileImg(`../uploads/${comment.img}`)
         : null,
