@@ -9,18 +9,20 @@ import commentRoutes from '../routes/comment-route.js'
 import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import dotenv from 'dotenv'
-import maria from '../database/maria.js'
 import path from 'path'
 
 dotenv.config({ path: '../.env' })
 const app = express()
-const PORT = 3000
+const PORT = 3001
 const secret_key = process.env.SECRET_KEY
-//maria.connect()
 
 app.use(
   cors({
-    origin: 'http://127.0.0.1:5500',
+    origin: [
+      'http://3.35.112.49:3000',
+      'http://3.35.112.49:3001',
+      'http://127.0.0.1:5500',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   }),
@@ -94,5 +96,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`server is running at ${PORT}`)
+  console.log(`green server is running at ${PORT}`)
 })
