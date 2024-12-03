@@ -19,6 +19,7 @@ const secret_key = process.env.SECRET_KEY
 app.use(
   cors({
     origin: [
+      'http://3.35.112.49',
       'http://3.35.112.49:3000',
       'http://3.35.112.49:3001',
       'http://127.0.0.1:5500',
