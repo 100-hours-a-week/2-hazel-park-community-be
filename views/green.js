@@ -63,37 +63,49 @@ app.use('/api/comments', commentRoutes)
 
 app.use(
   '/html',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/html')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/html'),
+  ),
 )
 app.use(
   '/components',
   express.static(
-    path.join('/home/ubuntu/2-hazel-park-community-fe/components'),
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/components'),
   ),
 )
 app.use(
   '/styles',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/styles')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/styles'),
+  ),
 )
 app.use(
   '/scripts',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/scripts')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/scripts'),
+  ),
 )
 app.use(
   '/utils',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/utils')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/utils'),
+  ),
 )
 app.use(
   '/services',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/services')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/services'),
+  ),
 )
 app.use(
   '/assets',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/assets')),
+  express.static(
+    path.join('/home/ubuntu/green/2-hazel-park-community-fe/assets'),
+  ),
 )
 
 app.get('/', (req, res) => {
-  res.sendFile('/home/ubuntu/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
+  res.sendFile('/home/ubuntu/green/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
 })
 
 app.listen(PORT, () => {
