@@ -77,6 +77,14 @@ export const registerUser = (req, res) => {
         }
         console.log('파일 확인: ', profilePic)
 
+        console.log('실행된 SQL:', insertUserQuery)
+        console.log('전달된 값:', [
+          email,
+          hashedPw,
+          nickname,
+          profilePic || null,
+        ])
+
         conn.query(
           insertUserQuery,
           [email, hashedPw, nickname, profilePic || null],
