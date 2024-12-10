@@ -68,7 +68,7 @@ export const registerUser = (req, res) => {
         if (req.file) {
           profilePic = req.file ? uploadImageToS3(req.file) : null
         }
-        console.log('파일 확인')
+        console.log('파일 확인: ', profilePic)
 
         conn.query(
           insertUserQuery,
