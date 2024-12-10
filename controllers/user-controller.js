@@ -1,9 +1,9 @@
-import { readUsersFromFile, writeUsersToFile } from './user-json-controller.js'
 import bcrypt from 'bcrypt'
 import multer from 'multer'
 import path from 'path'
 import { loadProfileImg } from '../utils/load-profile-img.js'
 import conn from '../database/maria.js'
+import { uploadImageToS3 } from '../utils/upload-s3.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -47,7 +47,7 @@ export const registerUser = (req, res) => {
 
       // 닉네임 중복 검사
       const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
-      conn.query(checkNicknameQuery, [nickname], (error, results) => {
+      conn.query(checkNicknameQuery, [nickname], async (error, results) => {
         if (error)
           return res.status(500).json({ message: '데이터베이스 에러', error })
 
@@ -64,12 +64,30 @@ export const registerUser = (req, res) => {
           INSERT INTO USER (email, pw, name, img) 
           VALUES (?, ?, ?, ?)
         `
-        const profilePic = req.file ? req.file.filename : null
-        console.log('파일 확인')
+        let profilePic = null
+        if (req.file) {
+          try {
+            profilePic = await uploadImageToS3(req.file) // 비동기 처리
+          } catch (uploadError) {
+            console.error('파일 업로드 에러:', uploadError)
+            return res
+              .status(500)
+              .json({ message: '이미지 업로드에 실패했습니다.' })
+          }
+        }
+        console.log('파일 확인: ', profilePic)
+
+        console.log('실행된 SQL:', insertUserQuery)
+        console.log('전달된 값:', [
+          email,
+          hashedPw,
+          nickname,
+          profilePic || null,
+        ])
 
         conn.query(
           insertUserQuery,
-          [email, hashedPw, nickname, profilePic],
+          [email, hashedPw, nickname, profilePic || null],
           (error) => {
             if (error) {
               console.error('회원가입 에러:', error.sqlMessage)
@@ -111,10 +129,9 @@ export const loginUser = (req, res) => {
 
         // 유저의 프로필 이미지가 존재하는 경우
         if (user.img) {
-          const imagePath = path.isAbsolute(user.img)
-            ? user.img
-            : path.join('../uploads', user.img)
-          sessionUser.profile_picture = loadProfileImg(imagePath)
+          sessionUser.profile_picture = user.img.startsWith('http')
+            ? user.img // S3 URL인 경우 그대로 반환
+            : loadProfileImg(path.join('../uploads', user.img)) // 로컬 파일인 경우
         }
 
         req.session.user = sessionUser
@@ -160,8 +177,9 @@ export const userInfo = (req, res) => {
 
       // 프로필 이미지가 있는 경우 쿼리에 추가
       if (req.file) {
+        const uploadResult = uploadImageToS3(req.file) // S3에 업로드
         updateQuery += ', img = ?'
-        queryParams.push(req.file.filename)
+        queryParams.push(uploadResult) // S3 URL 저장
       }
 
       // WHERE 절 추가

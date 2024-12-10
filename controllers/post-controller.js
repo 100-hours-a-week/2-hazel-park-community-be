@@ -1,12 +1,8 @@
-import {
-  readPostsFromFile,
-  writePostsToFile,
-} from '../controllers/post-json-controller.js'
-import { readUsersFromFile } from './user-json-controller.js'
 import { loadProfileImg } from '../utils/load-profile-img.js'
 import path from 'path'
 import multer from 'multer'
 import conn from '../database/maria.js'
+import { uploadImageToS3 } from '../utils/upload-s3.js'
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -26,8 +22,8 @@ const upload = multer({
 })
 
 // 게시글 등록
-export const uploadPost = (req, res) => {
-  upload.single('post_img')(req, res, (err) => {
+export const uploadPost = async (req, res) => {
+  upload.single('post_img')(req, res, async (err) => {
     if (err) {
       return res
         .status(400)
@@ -49,13 +45,20 @@ export const uploadPost = (req, res) => {
       const comments = 0
 
       // 이미지 파일 처리
-      const img = req.file ? req.file.filename : null
+      //const img = req.file ? req.file.filename : null
+
+      // 이미지 파일 처리 (CDN으로 업로드)
+      let img = null
+      if (req.file) {
+        img = await uploadImageToS3(req.file)
+      }
 
       const uploadQuery = `
         INSERT INTO POST 
         (title, updated_at, user_email, contents, likes, views, comments, img) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `
+
       const queryParams = [
         title,
         updated_at,
@@ -150,7 +153,9 @@ export const posts = (req, res) => {
         views: post.post_views,
         comments: post.post_comments,
         img: post.post_img
-          ? loadProfileImg(`../uploads/${post.post_img}`)
+          ? post.post_img.startsWith('http') // S3 URL인지 확인
+            ? post.post_img // 이미 S3 URL인 경우 그대로 반환
+            : loadProfileImg(`../uploads/${post.post_img}`) // 로컬 파일인 경우
           : null,
       }))
 
@@ -195,24 +200,18 @@ export const postDetail = (req, res) => {
       const post = results[0]
 
       // 작성자 프로필 이미지 처리
-      if (post.user_img) {
-        const imagePath = path.isAbsolute(post.user_img)
-          ? post.user_img
-          : path.join('../uploads', post.user_img)
-        post.author_profile_picture = loadProfileImg(imagePath)
-      } else {
-        post.author_profile_picture = null
-      }
+      post.author_profile_picture = post.user_img
+        ? post.user_img.startsWith('http')
+          ? post.user_img // S3 URL인 경우 그대로 반환
+          : loadProfileImg(path.join('../uploads', post.user_img)) // 로컬 파일인 경우
+        : null
 
       // 게시글 이미지 처리
-      if (post.post_img) {
-        const imagePath = path.isAbsolute(post.post_img)
-          ? post.post_img
-          : path.join('../uploads', post.post_img)
-        post.post_img = loadProfileImg(imagePath)
-      } else {
-        post.post_img = null
-      }
+      post.post_img = post.post_img
+        ? post.post_img.startsWith('http')
+          ? post.post_img // S3 URL인 경우 그대로 반환
+          : loadProfileImg(path.join('../uploads', post.post_img)) // 로컬 파일인 경우
+        : null
 
       // 조회수 업데이트
       const updateViewsQuery = 'UPDATE POST SET views = views + 1 WHERE id = ?'
@@ -246,7 +245,10 @@ export const editPost = (req, res) => {
 
     const postId = parseInt(req.params.postId)
     const { title, content, updated_at } = req.body
-    const postImg = req.file ? `${req.file.filename}` : null
+    let postImg = null
+    if (req.file) {
+      postImg = uploadImageToS3(req.file)
+    }
 
     const updateQuery = `
       UPDATE POST
