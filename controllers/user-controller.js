@@ -72,7 +72,7 @@ export const registerUser = (req, res) => {
 
         conn.query(
           insertUserQuery,
-          [email, hashedPw, nickname, profilePic],
+          [email, hashedPw, nickname, profilePic || null],
           (error) => {
             if (error) {
               console.error('회원가입 에러:', error.sqlMessage)
