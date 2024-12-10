@@ -179,54 +179,50 @@ export const userInfo = (req, res) => {
       // 기존 이미지 URL
       let userImg = selectResults[0].img
 
-      // 중복 닉네임 확인
-      const existingUsers = 'SELECT * FROM USER WHERE name = ? AND email != ?'
-      conn.query(existingUsers, [nickname, email], (error, result) => {
-        if (error) {
-          console.error('중복 닉네임 확인 중 오류:', error)
-          return res.status(500).json({ message: error.sqlMessage, error })
-        }
-
-        if (result.length > 0) {
-          return res.status(400).json({ message: '중복된 닉네임 입니다.' })
-        }
-
-        // 새로운 이미지가 업로드된 경우 S3에 업로드
-        if (req.file) {
-          try {
-            userImg = uploadImageToS3(req.file) // 새로운 이미지 URL
-          } catch (uploadError) {
-            console.error('이미지 업로드 중 오류:', uploadError)
-            return res.status(500).json({
-              message: '이미지 업로드에 실패했습니다.',
-              error: uploadError,
-            })
-          }
-        }
-
-        // 업데이트할 필드와 값을 동적으로 구성
-        const updateQuery = `UPDATE USER SET name = ?, img = ? WHERE email = ?`
-        const queryParams = [nickname, userImg, email]
-
-        conn.query(updateQuery, queryParams, (updateError, result) => {
-          if (updateError) {
-            console.error('사용자 정보 업데이트 중 오류:', updateError)
-            return res.status(500).json({
-              message: '사용자 정보 업데이트에 실패했습니다.',
-              error: updateError.sqlMessage,
-            })
-          }
-
-          if (result.affectedRows === 0) {
-            return res
-              .status(404)
-              .json({ message: '사용자를 찾을 수 없습니다.' })
-          }
-
-          res.status(200).json({
-            message: '사용자 정보가 업데이트 되었습니다.',
-            img: userImg, // 업데이트된 이미지 URL 반환
+      // 새로운 이미지가 업로드된 경우 S3에 업로드
+      if (req.file) {
+        try {
+          userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
+        } catch (uploadError) {
+          console.error('이미지 업로드 중 오류:', uploadError)
+          return res.status(500).json({
+            message: '이미지 업로드에 실패했습니다.',
+            error: uploadError,
           })
+        }
+      }
+
+      // 업데이트할 필드와 값을 동적으로 구성
+      let updateQuery = 'UPDATE USER SET name = ?'
+      const queryParams = [nickname]
+
+      // `img` 필드가 존재할 경우 쿼리에 추가
+      if (req.file) {
+        updateQuery += ', img = ?'
+        queryParams.push(userImg)
+      }
+
+      // WHERE 절 추가
+      updateQuery += ' WHERE email = ?'
+      queryParams.push(email)
+
+      // 업데이트 실행
+      conn.query(updateQuery, queryParams, (updateError, result) => {
+        if (updateError) {
+          console.error('사용자 정보 업데이트 중 오류:', updateError)
+          return res.status(500).json({
+            message: '사용자 정보 업데이트에 실패했습니다.',
+            error: updateError.sqlMessage,
+          })
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+        }
+
+        res.status(200).json({
+          message: '사용자 정보가 업데이트 되었습니다.',
+          img: userImg, // 업데이트된 이미지 URL 반환
         })
       })
     })
