@@ -47,7 +47,7 @@ export const registerUser = (req, res) => {
 
       // 닉네임 중복 검사
       const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
-      conn.query(checkNicknameQuery, [nickname], (error, results) => {
+      conn.query(checkNicknameQuery, [nickname], async (error, results) => {
         if (error)
           return res.status(500).json({ message: '데이터베이스 에러', error })
 
@@ -66,7 +66,14 @@ export const registerUser = (req, res) => {
         `
         let profilePic = null
         if (req.file) {
-          profilePic = req.file ? uploadImageToS3(req.file) : null
+          try {
+            profilePic = await uploadImageToS3(req.file) // 비동기 처리
+          } catch (uploadError) {
+            console.error('파일 업로드 에러:', uploadError)
+            return res
+              .status(500)
+              .json({ message: '이미지 업로드에 실패했습니다.' })
+          }
         }
         console.log('파일 확인: ', profilePic)
 
