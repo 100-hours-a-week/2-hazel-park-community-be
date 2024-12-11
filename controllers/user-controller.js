@@ -196,10 +196,11 @@ export const userInfo = (req, res) => {
       let updateQuery = 'UPDATE USER SET name = ?'
       const queryParams = [nickname]
 
-      // `img` 필드가 존재할 경우 쿼리에 추가
+      // `img` 필드가 존재할 경우만 쿼리에 추가
       if (req.file) {
         updateQuery += ', img = ?'
         queryParams.push(userImg)
+        console.log('바꾼 이미지: ', userImg)
       }
 
       // WHERE 절 추가

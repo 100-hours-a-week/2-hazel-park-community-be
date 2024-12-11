@@ -103,6 +103,8 @@ export const uploadComment = (req, res) => {
               .json({ message: '댓글 등록에 실패하였습니다.' })
           }
 
+          const newCommentId = insertResults.insertId
+
           // 게시글 댓글 수 증가
           const updatePostQuery = `
           UPDATE POST
@@ -117,8 +119,44 @@ export const uploadComment = (req, res) => {
                 .json({ message: '댓글 등록에 실패하였습니다.' })
             }
 
-            // 응답 전송
-            res.status(201).json({ message: '댓글을 등록하였습니다.' })
+            // 새로 등록된 댓글 데이터 반환
+            const selectCommentQuery = `
+              SELECT 
+                c.id,
+                u.name AS writer,
+                c.updated_at,
+                c.contents AS content,
+                CASE
+                  WHEN u.img IS NULL THEN NULL
+                  WHEN u.img LIKE 'http%' THEN u.img
+                  ELSE CONCAT('../uploads/', u.img)
+                END AS author_profile_picture
+              FROM COMMENT c
+              LEFT JOIN USER u ON c.user_email = u.email
+              WHERE c.id = ? AND c.post_id = ?
+            `
+
+            conn.query(
+              selectCommentQuery,
+              [newCommentId, postId],
+              (selectError, rows) => {
+                if (selectError) {
+                  console.error('댓글 조회 중 오류:', selectError)
+                  return res
+                    .status(500)
+                    .json({ message: '댓글 조회에 실패하였습니다.' })
+                }
+
+                if (rows.length === 0) {
+                  return res
+                    .status(404)
+                    .json({ message: '댓글을 찾을 수 없습니다.' })
+                }
+
+                // 성공적으로 생성된 댓글 데이터 반환
+                res.status(201).json(rows[0])
+              },
+            )
           })
         },
       )
@@ -171,10 +209,10 @@ export const editComment = (req, res) => {
 
           // 댓글 수정
           const updateCommentQuery = `
-          UPDATE COMMENT
-          SET contents = ?, updated_at = ?
-          WHERE id = ? AND post_id = ?
-        `
+            UPDATE COMMENT
+            SET contents = ?, updated_at = ?
+            WHERE id = ? AND post_id = ?
+          `
           conn.query(
             updateCommentQuery,
             [content, updated_at, commentId, postId],
@@ -186,7 +224,43 @@ export const editComment = (req, res) => {
                   .json({ message: '댓글 수정을 실패하였습니다.' })
               }
 
-              res.status(200).json({ message: '댓글을 수정하였습니다.' })
+              // 수정된 댓글 데이터 반환
+              const selectUpdatedCommentQuery = `
+                SELECT 
+                  c.id,
+                  u.name AS writer,
+                  c.updated_at,
+                  c.contents AS content,
+                  CASE
+                    WHEN u.img IS NULL THEN NULL
+                    WHEN u.img LIKE 'http%' THEN u.img
+                    ELSE CONCAT('../uploads/', u.img)
+                  END AS author_profile_picture
+                FROM COMMENT c
+                LEFT JOIN USER u ON c.user_email = u.email
+                WHERE c.id = ? AND c.post_id = ?
+              `
+
+              conn.query(
+                selectUpdatedCommentQuery,
+                [commentId, postId],
+                (selectError, rows) => {
+                  if (selectError) {
+                    console.error('수정된 댓글 조회 중 오류:', selectError)
+                    return res
+                      .status(500)
+                      .json({ message: '수정된 댓글 조회에 실패하였습니다.' })
+                  }
+
+                  if (rows.length === 0) {
+                    return res
+                      .status(404)
+                      .json({ message: '수정된 댓글을 찾을 수 없습니다.' })
+                  }
+
+                  res.status(200).json(rows[0])
+                },
+              )
             },
           )
         },
