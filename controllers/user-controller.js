@@ -5,14 +5,7 @@ import { loadProfileImg } from '../utils/load-profile-img.js'
 import conn from '../database/maria.js'
 import { uploadImageToS3 } from '../utils/upload-s3.js'
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, '../uploads/')
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname))
-  },
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage: storage,

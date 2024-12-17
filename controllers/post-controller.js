@@ -4,14 +4,7 @@ import multer from 'multer'
 import conn from '../database/maria.js'
 import { uploadImageToS3 } from '../utils/upload-s3.js'
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, '../uploads/')
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname))
-  },
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage: storage,
@@ -27,13 +20,15 @@ export const uploadPost = async (req, res) => {
     if (err) {
       return res
         .status(400)
-        .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
+        .json({
+          message: '게시글 이미지 업로드에 실패했습니다.',
+          error: err.message,
+        })
     }
 
     try {
       const { title, writer, updated_at, contents } = req.body
 
-      // 입력 값 검증
       if (!title || !writer || !contents) {
         return res
           .status(400)
@@ -44,13 +39,16 @@ export const uploadPost = async (req, res) => {
       const views = 0
       const comments = 0
 
-      // 이미지 파일 처리
-      //const img = req.file ? req.file.filename : null
-
-      // 이미지 파일 처리 (CDN으로 업로드)
       let img = null
       if (req.file) {
-        img = await uploadImageToS3(req.file)
+        try {
+          img = await uploadImageToS3(req.file) // 파일 업로드
+        } catch (uploadError) {
+          console.error('S3 업로드 실패:', uploadError)
+          return res
+            .status(500)
+            .json({ message: '이미지 업로드에 실패했습니다.' })
+        }
       }
 
       const uploadQuery = `
@@ -58,7 +56,6 @@ export const uploadPost = async (req, res) => {
         (title, updated_at, user_email, contents, likes, views, comments, img) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `
-
       const queryParams = [
         title,
         updated_at,
