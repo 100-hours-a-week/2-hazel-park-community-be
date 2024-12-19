@@ -19,10 +19,12 @@ const secret_key = process.env.SECRET_KEY
 app.use(
   cors({
     origin: [
-      'http://3.35.112.49',
-      'http://3.35.112.49:3000',
-      'http://3.35.112.49:3001',
-      'http://127.0.0.1:5500',
+      'http://52.79.154.1',
+      'http://localhost',
+      'http://127.0.0.1:5501',
+      'http://blue-v2-env.eba-vathmjjq.ap-northeast-2.elasticbeanstalk.com',
+      'http://green-v2-env.ap-northeast-2.elasticbeanstalk.com',
+      'http://blue-v2-env.ap-northeast-2.elasticbeanstalk.com',
     ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
