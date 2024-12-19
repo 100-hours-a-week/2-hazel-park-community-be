@@ -23,11 +23,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      # 3. Docker Buildx 설치 및 활성화
+      # 3. ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Docker Buildx 설치 및 활성화
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 4. Backend Docker 이미지 빌드 및 ECR로 푸시
+      # 5. Backend Docker 이미지 빌드 및 ECR로 푸시
       - name: Build and Push Backend Docker Image
         env:
           DOCKER_BUILDKIT: 1
@@ -35,7 +40,7 @@ jobs:
         run: |
           docker buildx build --platform linux/arm64,linux/amd64 -t ${{ secrets.ECR_BACKEND_URI }}:${{ github.sha }} --push .
 
-      # 5. SHA 정보를 S3에 저장
+      # 6. SHA 정보를 S3에 저장
       - name: Notify Backend Repository
         run: |
           echo "${{ github.sha }}" > sha.txt
