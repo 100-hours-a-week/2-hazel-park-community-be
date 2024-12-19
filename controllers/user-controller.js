@@ -11,7 +11,7 @@ const upload = multer({
   storage: storage,
   limits: {
     fieldSize: 25 * 1024 * 1024,
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024,
   },
 })
 
@@ -19,9 +19,17 @@ const upload = multer({
 export const registerUser = (req, res) => {
   upload.single('profile_pic')(req, res, (err) => {
     if (err) {
-      return res
-        .status(400)
-        .json({ message: '프로필 이미지 등록에 실패했습니다.' })
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          message:
+            '파일 크기가 5MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+        })
+      }
+
+      return res.status(400).json({
+        message: '게시글 이미지 업로드에 실패했습니다.',
+        error: err.message,
+      })
     }
 
     const { email, password, nickname } = req.body
@@ -59,6 +67,13 @@ export const registerUser = (req, res) => {
         `
         let profilePic = null
         if (req.file) {
+          // 파일 크기 검증
+          if (req.file.size > 20 * 1024 * 1024) {
+            return res.status(400).json({
+              message:
+                '파일 크기가 5MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+            })
+          }
           try {
             profilePic = await uploadImageToS3(req.file) // 비동기 처리
           } catch (uploadError) {
@@ -147,9 +162,17 @@ export const userInfo = (req, res) => {
   // 프로필 이미지 업로드 처리
   upload.single('new_profile_img')(req, res, async (err) => {
     if (err) {
-      return res
-        .status(400)
-        .json({ message: '프로필 이미지 변경에 실패했습니다.' })
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          message:
+            '파일 크기가 5MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+        })
+      }
+
+      return res.status(400).json({
+        message: '게시글 이미지 업로드에 실패했습니다.',
+        error: err.message,
+      })
     }
 
     const { email, nickname } = req.body
@@ -191,6 +214,13 @@ export const userInfo = (req, res) => {
 
         // 새로운 이미지가 업로드된 경우 S3에 업로드
         if (req.file) {
+          // 파일 크기 검증
+          if (req.file.size > 20 * 1024 * 1024) {
+            return res.status(400).json({
+              message:
+                '파일 크기가 5MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+            })
+          }
           try {
             userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
           } catch (uploadError) {

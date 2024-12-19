@@ -10,7 +10,7 @@ const upload = multer({
   storage: storage,
   limits: {
     fieldSize: 25 * 1024 * 1024,
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 20 * 1024 * 1024,
   },
 })
 
@@ -18,12 +18,17 @@ const upload = multer({
 export const uploadPost = async (req, res) => {
   upload.single('post_img')(req, res, async (err) => {
     if (err) {
-      return res
-        .status(400)
-        .json({
-          message: '게시글 이미지 업로드에 실패했습니다.',
-          error: err.message,
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({
+          message:
+            '파일 크기가 20MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
         })
+      }
+
+      return res.status(400).json({
+        message: '게시글 이미지 업로드에 실패했습니다.',
+        error: err.message,
+      })
     }
 
     try {
@@ -33,6 +38,14 @@ export const uploadPost = async (req, res) => {
         return res
           .status(400)
           .json({ message: '제목, 작성자, 내용을 입력해주세요.' })
+      }
+
+      // 파일 크기 검증
+      if (req.file && req.file.size > 20 * 1024 * 1024) {
+        return res.status(400).json({
+          message:
+            '파일 크기가 20MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+        })
       }
 
       const likes = 0
