@@ -4,14 +4,7 @@ import multer from 'multer'
 import conn from '../database/maria.js'
 import { uploadImageToS3 } from '../utils/upload-s3.js'
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, '../uploads/')
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname))
-  },
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage: storage,
@@ -27,13 +20,15 @@ export const uploadPost = async (req, res) => {
     if (err) {
       return res
         .status(400)
-        .json({ message: '게시글 이미지 업로드에 실패했습니다.' })
+        .json({
+          message: '게시글 이미지 업로드에 실패했습니다.',
+          error: err.message,
+        })
     }
 
     try {
       const { title, writer, updated_at, contents } = req.body
 
-      // 입력 값 검증
       if (!title || !writer || !contents) {
         return res
           .status(400)
@@ -44,13 +39,16 @@ export const uploadPost = async (req, res) => {
       const views = 0
       const comments = 0
 
-      // 이미지 파일 처리
-      //const img = req.file ? req.file.filename : null
-
-      // 이미지 파일 처리 (CDN으로 업로드)
       let img = null
       if (req.file) {
-        img = await uploadImageToS3(req.file)
+        try {
+          img = await uploadImageToS3(req.file) // 파일 업로드
+        } catch (uploadError) {
+          console.error('S3 업로드 실패:', uploadError)
+          return res
+            .status(500)
+            .json({ message: '이미지 업로드에 실패했습니다.' })
+        }
       }
 
       const uploadQuery = `
@@ -58,7 +56,6 @@ export const uploadPost = async (req, res) => {
         (title, updated_at, user_email, contents, likes, views, comments, img) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `
-
       const queryParams = [
         title,
         updated_at,
@@ -235,7 +232,7 @@ export const postDetail = (req, res) => {
 
 // 게시글 수정
 export const editPost = (req, res) => {
-  upload.single('post_img')(req, res, (err) => {
+  upload.single('post_img')(req, res, async (err) => {
     if (err) {
       return res.status(400).json({
         message: '게시글 이미지 변경에 실패했습니다.',
@@ -246,37 +243,67 @@ export const editPost = (req, res) => {
     const postId = parseInt(req.params.postId)
     const { title, content, updated_at } = req.body
     let postImg = null
+
     if (req.file) {
-      postImg = uploadImageToS3(req.file)
+      try {
+        postImg = await uploadImageToS3(req.file) // 이미지 업로드 함수 호출
+      } catch (uploadError) {
+        return res.status(500).json({
+          message: '이미지 업로드에 실패했습니다.',
+          error: uploadError.message,
+        })
+      }
     }
 
-    const updateQuery = `
-      UPDATE POST
-      SET title = ?, contents = ?, updated_at = ?, img = ?
-      WHERE id = ?
+    // 이미지를 전달하지 않은 경우 기존 이미지를 유지하기 위해 기존 데이터를 가져옵니다.
+    const selectQuery = `
+      SELECT img FROM POST WHERE id = ?
     `
 
-    conn.query(
-      updateQuery,
-      [title, content, updated_at, postImg, postId],
-      (error, results) => {
-        if (error) {
-          console.error('게시글 수정 중 오류:', error)
-          return res.status(500).json({
-            message: '게시글 수정에 실패했습니다.',
-            error: error.sqlMessage,
-          })
-        }
+    conn.query(selectQuery, [postId], (selectError, selectResults) => {
+      if (selectError) {
+        console.error('게시글 조회 중 오류:', selectError)
+        return res.status(500).json({
+          message: '게시글 조회에 실패했습니다.',
+          error: selectError.sqlMessage,
+        })
+      }
 
-        if (results.affectedRows === 0) {
-          return res
-            .status(404)
-            .json({ message: '게시글이 존재하지 않습니다.' })
-        }
+      if (selectResults.length === 0) {
+        return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
+      }
 
-        res.status(200).json({ message: '게시글을 수정하였습니다.' })
-      },
-    )
+      // 이미지가 없을 경우 기존 이미지를 유지
+      postImg = postImg || selectResults[0].img
+
+      const updateQuery = `
+        UPDATE POST
+        SET title = ?, contents = ?, updated_at = ?, img = ?
+        WHERE id = ?
+      `
+
+      conn.query(
+        updateQuery,
+        [title, content, updated_at, postImg, postId],
+        (updateError, results) => {
+          if (updateError) {
+            console.error('게시글 수정 중 오류:', updateError)
+            return res.status(500).json({
+              message: '게시글 수정에 실패했습니다.',
+              error: updateError.sqlMessage,
+            })
+          }
+
+          if (results.affectedRows === 0) {
+            return res
+              .status(404)
+              .json({ message: '게시글이 존재하지 않습니다.' })
+          }
+
+          res.status(200).json({ message: '게시글을 수정하였습니다.' })
+        },
+      )
+    })
   })
 }
 

@@ -13,16 +13,18 @@ import path from 'path'
 
 dotenv.config({ path: '../.env' })
 const app = express()
-const PORT = 3001
+const PORT = 3000
 const secret_key = process.env.SECRET_KEY
 
 app.use(
   cors({
     origin: [
-      'http://3.35.112.49',
-      'http://3.35.112.49:3000',
-      'http://3.35.112.49:3001',
-      'http://127.0.0.1:5500',
+      'http://52.79.154.1',
+      'http://localhost',
+      'http://127.0.0.1:5501',
+      'http://blue-v2-env.eba-vathmjjq.ap-northeast-2.elasticbeanstalk.com',
+      'http://green-v2-env.ap-northeast-2.elasticbeanstalk.com',
+      'http://blue-v2-env.ap-northeast-2.elasticbeanstalk.com',
     ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
@@ -63,51 +65,39 @@ app.use('/api/comments', commentRoutes)
 
 app.use(
   '/html',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/html'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/html')),
 )
 app.use(
   '/components',
   express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/components'),
+    path.join('/home/ubuntu/2-hazel-park-community-fe/components'),
   ),
 )
 app.use(
   '/styles',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/styles'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/styles')),
 )
 app.use(
   '/scripts',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/scripts'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/scripts')),
 )
 app.use(
   '/utils',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/utils'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/utils')),
 )
 app.use(
   '/services',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/services'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/services')),
 )
 app.use(
   '/assets',
-  express.static(
-    path.join('/home/ubuntu/green/2-hazel-park-community-fe/assets'),
-  ),
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/assets')),
 )
 
 app.get('/', (req, res) => {
-  res.sendFile('/home/ubuntu/green/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
+  res.sendFile('/home/ubuntu/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
 })
 
 app.listen(PORT, () => {
-  console.log(`green server is running at ${PORT}`)
+  console.log(`blue server is running at ${PORT}`)
 })

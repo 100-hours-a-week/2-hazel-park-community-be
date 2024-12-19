@@ -1,0 +1,40 @@
+name: Build and Push Backend to ECR
+
+on:
+  push:
+    branches:
+      - main # main 브랜치 push 시 실행
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. GitHub 레포지토리 체크아웃
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. AWS 자격 증명 설정
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 3. Amazon ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 4. Backend Docker 이미지 빌드 및 ECR로 푸시
+      - name: Build and Push Backend Docker Image
+        run: |
+          docker buildx build --platform linux/arm64,linux/amd64 -t ${{ secrets.ECR_BACKEND_URI }}:${{ github.sha }} --push .
+
+      # 5. SHA 정보를 S3에 저장
+      - name: Notify Backend Repository
+        run: |
+          echo "${{ github.sha }}" > sha.txt
+          aws s3 cp sha.txt s3://hazel-sha-bucket/sha.txt

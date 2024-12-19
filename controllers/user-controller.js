@@ -5,14 +5,7 @@ import { loadProfileImg } from '../utils/load-profile-img.js'
 import conn from '../database/maria.js'
 import { uploadImageToS3 } from '../utils/upload-s3.js'
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, '../uploads/')
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname))
-  },
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage: storage,
@@ -149,6 +142,7 @@ export const loginUser = (req, res) => {
 }
 
 // 회원 닉네임 or 프로필 이미지 수정
+// 회원 닉네임 or 프로필 이미지 수정
 export const userInfo = (req, res) => {
   // 프로필 이미지 업로드 처리
   upload.single('new_profile_img')(req, res, async (err) => {
@@ -160,44 +154,90 @@ export const userInfo = (req, res) => {
 
     const { email, nickname } = req.body
 
-    const existingUsers = 'SELECT * FROM USER WHERE name = ? AND email != ?'
-    conn.query(existingUsers, [nickname, email], (error, result) => {
-      if (error) {
-        console.log(error)
-        return res.status(500).json({ message: error.sqlMessage, error })
+    // 닉네임 중복 체크
+    const checkNicknameQuery = `SELECT email FROM USER WHERE name = ?`
+
+    conn.query(checkNicknameQuery, [nickname], (checkError, results) => {
+      if (checkError) {
+        console.error('닉네임 중복 체크 중 오류:', checkError)
+        return res.status(500).json({
+          message: '닉네임 중복 체크에 실패했습니다.',
+          error: checkError.sqlMessage,
+        })
       }
 
-      if (result.length > 0) {
-        return res.status(400).json({ message: '중복된 닉네임 입니다.' })
+      if (results.length > 0) {
+        return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' })
       }
 
-      // 업데이트할 필드와 값을 동적으로 구성
-      let updateQuery = 'UPDATE USER SET name = ?'
-      let queryParams = [nickname]
+      // 유저의 기존 프로필 이미지를 조회
+      const selectQuery = `SELECT img FROM USER WHERE email = ?`
 
-      // 프로필 이미지가 있는 경우 쿼리에 추가
-      if (req.file) {
-        const uploadResult = uploadImageToS3(req.file) // S3에 업로드
-        updateQuery += ', img = ?'
-        queryParams.push(uploadResult) // S3 URL 저장
-      }
-
-      // WHERE 절 추가
-      updateQuery += ' WHERE email = ?'
-      queryParams.push(email)
-
-      conn.query(updateQuery, queryParams, (error, result) => {
-        if (error) {
-          console.log(error)
-          return res.status(500).json({ message: error.sqlMessage, error })
+      conn.query(selectQuery, [email], async (selectError, selectResults) => {
+        if (selectError) {
+          console.error('유저 조회 중 오류:', selectError)
+          return res.status(500).json({
+            message: '유저 조회에 실패했습니다.',
+            error: selectError.sqlMessage,
+          })
         }
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
-        } else {
-          res
-            .status(200)
-            .json({ message: '사용자 정보가 업데이트 되었습니다.' })
+
+        if (selectResults.length === 0) {
+          return res.status(404).json({ message: '유저가 존재하지 않습니다.' })
         }
+
+        // 기존 이미지 URL
+        let userImg = selectResults[0].img
+
+        // 새로운 이미지가 업로드된 경우 S3에 업로드
+        if (req.file) {
+          try {
+            userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
+          } catch (uploadError) {
+            console.error('이미지 업로드 중 오류:', uploadError)
+            return res.status(500).json({
+              message: '이미지 업로드에 실패했습니다.',
+              error: uploadError,
+            })
+          }
+        }
+
+        // 업데이트할 필드와 값을 동적으로 구성
+        let updateQuery = 'UPDATE USER SET name = ?'
+        const queryParams = [nickname]
+
+        // `img` 필드가 존재할 경우만 쿼리에 추가
+        if (req.file) {
+          updateQuery += ', img = ?'
+          queryParams.push(userImg)
+          console.log('바꾼 이미지: ', userImg)
+        }
+
+        // WHERE 절 추가
+        updateQuery += ' WHERE email = ?'
+        queryParams.push(email)
+
+        // 업데이트 실행
+        conn.query(updateQuery, queryParams, (updateError, result) => {
+          if (updateError) {
+            console.error('사용자 정보 업데이트 중 오류:', updateError)
+            return res.status(500).json({
+              message: '사용자 정보 업데이트에 실패했습니다.',
+              error: updateError.sqlMessage,
+            })
+          }
+
+          if (result.affectedRows === 0) {
+            return res
+              .status(404)
+              .json({ message: '사용자를 찾을 수 없습니다.' })
+          }
+
+          res.status(200).json({
+            message: '사용자 정보가 업데이트 되었습니다.',
+            img: userImg, // 업데이트된 이미지 URL 반환
+          })
+        })
       })
     })
   })
