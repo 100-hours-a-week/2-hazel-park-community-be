@@ -9,17 +9,23 @@ import commentRoutes from '../routes/comment-route.js'
 import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import dotenv from 'dotenv'
-import maria from '../database/maria.js'
+import path from 'path'
 
 dotenv.config({ path: '../.env' })
 const app = express()
 const PORT = 3000
 const secret_key = process.env.SECRET_KEY
-//maria.connect()
 
 app.use(
   cors({
-    origin: 'http://127.0.0.1:5500',
+    origin: [
+      'http://52.79.154.1',
+      'http://localhost',
+      'http://127.0.0.1:5501',
+      'http://blue-v2-env.eba-vathmjjq.ap-northeast-2.elasticbeanstalk.com',
+      'http://green-v2-env.ap-northeast-2.elasticbeanstalk.com',
+      'http://blue-v2-env.ap-northeast-2.elasticbeanstalk.com',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   }),
@@ -57,6 +63,41 @@ app.use('/api/users', userRoutes)
 app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
 
+app.use(
+  '/html',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/html')),
+)
+app.use(
+  '/components',
+  express.static(
+    path.join('/home/ubuntu/2-hazel-park-community-fe/components'),
+  ),
+)
+app.use(
+  '/styles',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/styles')),
+)
+app.use(
+  '/scripts',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/scripts')),
+)
+app.use(
+  '/utils',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/utils')),
+)
+app.use(
+  '/services',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/services')),
+)
+app.use(
+  '/assets',
+  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/assets')),
+)
+
+app.get('/', (req, res) => {
+  res.sendFile('/home/ubuntu/2-hazel-park-community-fe/html/Posts.html') // index.html 경로
+})
+
 app.listen(PORT, () => {
-  console.log(`server is running at ${PORT}`)
+  console.log(`blue server is running at ${PORT}`)
 })
