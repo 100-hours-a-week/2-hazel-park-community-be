@@ -156,7 +156,15 @@ export const loginUser = (req, res) => {
   })
 }
 
-// 회원 닉네임 or 프로필 이미지 수정
+// 사용자 로그인 확인
+export const getSessionUser = (req, res) => {
+  if (req.session.user) {
+    res.status(200).json({ user: req.session.user })
+  } else {
+    res.status(401).json({ message: '로그인이 필요합니다.' })
+  }
+}
+
 // 회원 닉네임 or 프로필 이미지 수정
 export const userInfo = (req, res) => {
   // 프로필 이미지 업로드 처리
@@ -263,9 +271,18 @@ export const userInfo = (req, res) => {
               .json({ message: '사용자를 찾을 수 없습니다.' })
           }
 
+          // 세션 데이터 갱신
+          if (req.session) {
+            req.session.user.nickname = nickname // 닉네임 업데이트
+            if (req.file) {
+              req.session.user.profile_picture = userImg // 프로필 이미지 업데이트
+            }
+          }
+
           res.status(200).json({
             message: '사용자 정보가 업데이트 되었습니다.',
             img: userImg, // 업데이트된 이미지 URL 반환
+            nickname,
           })
         })
       })
@@ -330,12 +347,17 @@ export const deleteUser = (req, res) => {
 }
 
 export const logoutUser = (req, res) => {
-  try {
-    req.session = null
+  req.session.destroy((err) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: '로그아웃 실패.', error: err.message })
+    }
+
+    // 세션 쿠키 제거
     res.clearCookie('session')
 
-    res.status(200).json({ message: '로그아웃에 성공하였습니다.' })
-  } catch (error) {
-    res.status(500).json({ message: '로그아웃에 실패하였습니다.' })
-  }
+    // 로그아웃 모두 정상. 성공 응답 전송
+    res.status(200).json({ message: '로그아웃 성공' })
+  })
 }
