@@ -10,7 +10,7 @@ const upload = multer({
   storage: storage,
   limits: {
     fieldSize: 25 * 1024 * 1024,
-    fileSize: 20 * 1024 * 1024,
+    fileSize: 10 * 1024 * 1024,
   },
 })
 
@@ -21,7 +21,7 @@ export const uploadPost = async (req, res) => {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({
           message:
-            '파일 크기가 20MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+            '파일 크기가 10MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
         })
       }
 
@@ -41,10 +41,10 @@ export const uploadPost = async (req, res) => {
       }
 
       // 파일 크기 검증
-      if (req.file && req.file.size > 20 * 1024 * 1024) {
+      if (req.file && req.file.size > 10 * 1024 * 1024) {
         return res.status(400).json({
           message:
-            '파일 크기가 20MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
+            '파일 크기가 10MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
         })
       }
 
@@ -254,10 +254,12 @@ export const editPost = (req, res) => {
     }
 
     const postId = parseInt(req.params.postId)
-    const { title, content, updated_at } = req.body
+    const { title, content, updated_at, post_img } = req.body
     let postImg = null
 
-    if (req.file) {
+    if (post_img === 'null') {
+      postImg = null
+    } else if (req.file) {
       try {
         postImg = await uploadImageToS3(req.file) // 이미지 업로드 함수 호출
       } catch (uploadError) {
@@ -266,57 +268,57 @@ export const editPost = (req, res) => {
           error: uploadError.message,
         })
       }
-    }
-
-    // 이미지를 전달하지 않은 경우 기존 이미지를 유지하기 위해 기존 데이터를 가져옵니다.
-    const selectQuery = `
+    } else {
+      const selectQuery = `
       SELECT img FROM POST WHERE id = ?
     `
 
-    conn.query(selectQuery, [postId], (selectError, selectResults) => {
-      if (selectError) {
-        console.error('게시글 조회 중 오류:', selectError)
-        return res.status(500).json({
-          message: '게시글 조회에 실패했습니다.',
-          error: selectError.sqlMessage,
-        })
-      }
+      conn.query(selectQuery, [postId], (selectError, selectResults) => {
+        if (selectError) {
+          console.error('게시글 조회 중 오류:', selectError)
+          return res.status(500).json({
+            message: '게시글 조회에 실패했습니다.',
+            error: selectError.sqlMessage,
+          })
+        }
 
-      if (selectResults.length === 0) {
-        return res.status(404).json({ message: '게시글이 존재하지 않습니다.' })
-      }
+        if (selectResults.length === 0) {
+          return res
+            .status(404)
+            .json({ message: '게시글이 존재하지 않습니다.' })
+        }
 
-      // 이미지가 없을 경우 기존 이미지를 유지
-      postImg = postImg || selectResults[0].img
-
-      const updateQuery = `
+        // 이미지가 없을 경우 기존 이미지를 유지
+        postImg = selectResults[0].img
+      })
+    }
+    const updateQuery = `
         UPDATE POST
         SET title = ?, contents = ?, updated_at = ?, img = ?
         WHERE id = ?
       `
 
-      conn.query(
-        updateQuery,
-        [title, content, updated_at, postImg, postId],
-        (updateError, results) => {
-          if (updateError) {
-            console.error('게시글 수정 중 오류:', updateError)
-            return res.status(500).json({
-              message: '게시글 수정에 실패했습니다.',
-              error: updateError.sqlMessage,
-            })
-          }
+    conn.query(
+      updateQuery,
+      [title, content, updated_at, postImg, postId],
+      (updateError, results) => {
+        if (updateError) {
+          console.error('게시글 수정 중 오류:', updateError)
+          return res.status(500).json({
+            message: '게시글 수정에 실패했습니다.',
+            error: updateError.sqlMessage,
+          })
+        }
 
-          if (results.affectedRows === 0) {
-            return res
-              .status(404)
-              .json({ message: '게시글이 존재하지 않습니다.' })
-          }
+        if (results.affectedRows === 0) {
+          return res
+            .status(404)
+            .json({ message: '게시글이 존재하지 않습니다.' })
+        }
 
-          res.status(200).json({ message: '게시글을 수정하였습니다.' })
-        },
-      )
-    })
+        res.status(200).json({ message: '게시글을 수정하였습니다.' })
+      },
+    )
   })
 }
 
