@@ -21,7 +21,7 @@ app.use(
     origin: [
       'http://52.79.154.1',
       'http://localhost',
-      'http://127.0.0.1:5501',
+      'http://127.0.0.1:5500',
       'http://blue-v2-env.eba-vathmjjq.ap-northeast-2.elasticbeanstalk.com',
       'http://green-v2-env.ap-northeast-2.elasticbeanstalk.com',
       'http://blue-v2-env.ap-northeast-2.elasticbeanstalk.com',
@@ -50,7 +50,7 @@ app.use(
       httpOnly: false,
       secure: false,
       maxAge: 24 * 60 * 60 * 1000,
-      sameSite: 'none',
+      sameSite: 'lax',
     },
   }),
 )
