@@ -44,4 +44,4 @@ jobs:
       - name: Notify Backend Repository
         run: |
           echo "${{ github.sha }}" > sha.txt
-          aws s3 cp sha.txt s3://hazel-sha-bucket/sha.txt
+          aws s3 cp sha.txt s3://hazel2-sha-bucket/sha.txt
