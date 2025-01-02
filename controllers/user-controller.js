@@ -341,8 +341,21 @@ export const deleteUser = (req, res) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
     }
 
-    // 성공적으로 삭제된 경우
-    res.status(204).send()
+    // 세션 제거
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('세션 제거 중 오류:', err)
+        return res
+          .status(500)
+          .json({ message: '회원은 삭제되었으나 세션 제거에 실패했습니다.' })
+      }
+
+      // 세션 쿠키 제거
+      res.clearCookie('session')
+
+      // 성공 응답
+      res.status(204).send()
+    })
   })
 }
 
