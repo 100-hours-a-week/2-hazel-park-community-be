@@ -14,7 +14,7 @@ export const uploadImageToS3 = async (file) => {
   console.log(file) // 파일 정보 로그 확인
 
   const params = {
-    Bucket: 'hazel-community-s3', // S3 버킷 이름
+    Bucket: 'hazel2-community-s3', // S3 버킷 이름
     Key: `${Date.now()}_${file.originalname}`, // 이미지 파일 이름 (중복 방지)
     Body: file.buffer, // Multer 메모리 스토리지의 버퍼 사용
     ContentType: file.mimetype, // 파일 MIME 타입
@@ -26,7 +26,7 @@ export const uploadImageToS3 = async (file) => {
     .upload(params)
     .promise()
     .then((uploadResult) => {
-      return `https://d1q5km98omun05.cloudfront.net/${uploadResult.Key}`
+      return `https://d9gfwmpqmyevi.cloudfront.net/${uploadResult.Key}`
     })
     .catch((error) => {
       console.error('S3 업로드 실패:', error)
