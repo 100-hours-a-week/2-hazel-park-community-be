@@ -15,6 +15,64 @@ const upload = multer({
   },
 })
 
+export const checkEmail = (req, res) => {
+  const { email } = req.body
+  console.log('요청 바디 확인', email)
+
+  if (!email) {
+    return res.status(400).json({ message: '이메일을 입력해주세요.' })
+  }
+
+  const checkEmailQuery = 'SELECT * FROM USER WHERE email = ?'
+  conn.query(checkEmailQuery, [email], (error, results) => {
+    if (error) {
+      console.error('데이터베이스 에러:', error)
+      return res.status(500).json({ message: '데이터베이스 에러', error })
+    }
+
+    if (results.length > 0) {
+      console.log('이메일 중복 확인: 이미 존재하는 이메일')
+      return res
+        .status(400)
+        .json({ code: 400, message: '이미 존재하는 이메일입니다.' })
+    }
+
+    console.log('이메일 중복 확인: 사용 가능한 이메일')
+    return res
+      .status(200)
+      .json({ code: 200, message: '사용 가능한 이메일입니다.' })
+  })
+}
+
+export const checkNickname = (req, res) => {
+  const { nickname } = req.body
+  console.log('요청 바디 확인', nickname)
+
+  if (!nickname) {
+    return res.status(400).json({ message: '닉네임을 입력해주세요.' })
+  }
+
+  const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
+  conn.query(checkNicknameQuery, [nickname], (error, results) => {
+    if (error) {
+      console.error('데이터베이스 에러:', error)
+      return res.status(500).json({ message: '데이터베이스 에러', error })
+    }
+
+    if (results.length > 0) {
+      console.log('닉네임 중복 확인: 중복된 닉네임')
+      return res
+        .status(400)
+        .json({ code: 400, message: '중복된 닉네임 입니다.' })
+    }
+
+    console.log('닉네임 중복 확인: 사용 가능한 닉네임')
+    return res
+      .status(200)
+      .json({ code: 200, message: '사용 가능한 닉네임입니다.' })
+  })
+}
+
 // 회원 가입
 export const registerUser = (req, res) => {
   upload.single('profile_pic')(req, res, (err) => {
@@ -341,8 +399,21 @@ export const deleteUser = (req, res) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
     }
 
-    // 성공적으로 삭제된 경우
-    res.status(204).send()
+    // 세션 제거
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('세션 제거 중 오류:', err)
+        return res
+          .status(500)
+          .json({ message: '회원은 삭제되었으나 세션 제거에 실패했습니다.' })
+      }
+
+      // 세션 쿠키 제거
+      res.clearCookie('session')
+
+      // 성공 응답
+      res.status(204).send()
+    })
   })
 }
 
