@@ -1,5 +1,7 @@
 import express from 'express'
 import {
+  checkEmail,
+  checkNickname,
   registerUser,
   loginUser,
   getSessionUser,
@@ -11,6 +13,8 @@ import {
 
 const router = express.Router()
 
+router.post('/email', checkEmail)
+router.post('/nickname', checkNickname)
 router.post('/register', registerUser)
 router.post('/login', loginUser)
 router.get('/user-session', getSessionUser)
