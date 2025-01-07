@@ -236,112 +236,106 @@ export const userInfo = (req, res) => {
       }
 
       return res.status(400).json({
-        message: '게시글 이미지 업로드에 실패했습니다.',
+        message: '이미지 업로드에 실패했습니다.',
         error: err.message,
       })
     }
 
     const { email, nickname } = req.body
 
-    // 닉네임 중복 체크
-    const checkNicknameQuery = `SELECT email FROM USER WHERE name = ?`
+    // 유저의 기존 프로필 이미지를 조회
+    const selectQuery = `SELECT img FROM USER WHERE email = ?`
 
-    conn.query(checkNicknameQuery, [nickname], (checkError, results) => {
-      if (checkError) {
-        console.error('닉네임 중복 체크 중 오류:', checkError)
+    conn.query(selectQuery, [email], async (selectError, selectResults) => {
+      if (selectError) {
+        console.error('유저 조회 중 오류:', selectError)
         return res.status(500).json({
-          message: '닉네임 중복 체크에 실패했습니다.',
-          error: checkError.sqlMessage,
+          message: '유저 조회에 실패했습니다.',
+          error: selectError.sqlMessage,
         })
       }
 
-      if (results.length > 0) {
-        return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' })
+      if (selectResults.length === 0) {
+        return res.status(404).json({ message: '유저가 존재하지 않습니다.' })
       }
 
-      // 유저의 기존 프로필 이미지를 조회
-      const selectQuery = `SELECT img FROM USER WHERE email = ?`
+      // 기존 이미지 URL
+      let userImg = selectResults[0].img
 
-      conn.query(selectQuery, [email], async (selectError, selectResults) => {
-        if (selectError) {
-          console.error('유저 조회 중 오류:', selectError)
+      // 새로운 이미지가 업로드된 경우 S3에 업로드
+      if (req.file) {
+        try {
+          userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
+        } catch (uploadError) {
+          console.error('이미지 업로드 중 오류:', uploadError)
           return res.status(500).json({
-            message: '유저 조회에 실패했습니다.',
-            error: selectError.sqlMessage,
+            message: '이미지 업로드에 실패했습니다.',
+            error: uploadError,
           })
         }
+      }
 
-        if (selectResults.length === 0) {
-          return res.status(404).json({ message: '유저가 존재하지 않습니다.' })
-        }
+      // 업데이트할 필드와 값을 동적으로 구성
+      let updateQuery = 'UPDATE USER SET'
+      const queryParams = []
 
-        // 기존 이미지 URL
-        let userImg = selectResults[0].img
-
-        // 새로운 이미지가 업로드된 경우 S3에 업로드
-        if (req.file) {
-          // 파일 크기 검증
-          if (req.file.size > 20 * 1024 * 1024) {
-            return res.status(400).json({
-              message:
-                '파일 크기가 5MB를 초과했습니다. 더 작은 파일을 업로드해주세요.',
-            })
-          }
-          try {
-            userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
-          } catch (uploadError) {
-            console.error('이미지 업로드 중 오류:', uploadError)
-            return res.status(500).json({
-              message: '이미지 업로드에 실패했습니다.',
-              error: uploadError,
-            })
-          }
-        }
-
-        // 업데이트할 필드와 값을 동적으로 구성
-        let updateQuery = 'UPDATE USER SET name = ?'
-        const queryParams = [nickname]
-
-        // `img` 필드가 존재할 경우만 쿼리에 추가
-        if (req.file) {
-          updateQuery += ', img = ?'
-          queryParams.push(userImg)
-          console.log('바꾼 이미지: ', userImg)
-        }
-
-        // WHERE 절 추가
-        updateQuery += ' WHERE email = ?'
-        queryParams.push(email)
-
-        // 업데이트 실행
-        conn.query(updateQuery, queryParams, (updateError, result) => {
-          if (updateError) {
-            console.error('사용자 정보 업데이트 중 오류:', updateError)
-            return res.status(500).json({
-              message: '사용자 정보 업데이트에 실패했습니다.',
-              error: updateError.sqlMessage,
-            })
-          }
-
-          if (result.affectedRows === 0) {
-            return res
-              .status(404)
-              .json({ message: '사용자를 찾을 수 없습니다.' })
-          }
-
-          // 세션 데이터 갱신
-          if (req.session) {
-            req.session.user.nickname = nickname // 닉네임 업데이트
-            if (req.file) {
-              req.session.user.profile_picture = userImg // 프로필 이미지 업데이트
+      if (nickname) {
+        // 닉네임 중복 체크
+        const checkNicknameQuery = `SELECT email FROM USER WHERE name = ?`
+        const nicknameCheck = await new Promise((resolve) => {
+          conn.query(checkNicknameQuery, [nickname], (checkError, results) => {
+            if (checkError) {
+              console.error('닉네임 중복 체크 중 오류:', checkError)
+              resolve(false)
             }
-          }
-
-          res.status(200).json({
-            message: '사용자 정보가 업데이트 되었습니다.',
-            img: userImg, // 업데이트된 이미지 URL 반환
-            nickname,
+            resolve(results.length === 0)
           })
+        })
+
+        if (!nicknameCheck) {
+          return res
+            .status(400)
+            .json({ message: '이미 사용 중인 닉네임입니다.' })
+        }
+
+        updateQuery += ' name = ?'
+        queryParams.push(nickname)
+      }
+
+      if (req.file) {
+        if (queryParams.length > 0) updateQuery += ','
+        updateQuery += ' img = ?'
+        queryParams.push(userImg)
+      }
+
+      // WHERE 절 추가
+      updateQuery += ' WHERE email = ?'
+      queryParams.push(email)
+
+      // 업데이트 실행
+      conn.query(updateQuery, queryParams, (updateError, result) => {
+        if (updateError) {
+          console.error('사용자 정보 업데이트 중 오류:', updateError)
+          return res.status(500).json({
+            message: '사용자 정보 업데이트에 실패했습니다.',
+            error: updateError.sqlMessage,
+          })
+        }
+
+        if (result.affectedRows === 0) {
+          return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
+        }
+
+        // 세션 데이터 갱신
+        if (req.session) {
+          if (nickname) req.session.user.nickname = nickname
+          if (req.file) req.session.user.profile_picture = userImg
+        }
+
+        res.status(200).json({
+          message: '사용자 정보가 업데이트 되었습니다.',
+          img: userImg,
+          nickname,
         })
       })
     })
