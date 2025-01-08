@@ -57,7 +57,7 @@ export const uploadPost = async (req, res) => {
         try {
           img = await uploadImageToS3(req.file) // 파일 업로드
         } catch (uploadError) {
-          console.error('S3 업로드 실패:', uploadError)
+          console.error('S3 업로드 실패:', uploadError.message)
           return res
             .status(500)
             .json({ message: '이미지 업로드에 실패했습니다.' })
@@ -82,14 +82,12 @@ export const uploadPost = async (req, res) => {
 
       conn.query(uploadQuery, queryParams, (error, result) => {
         if (error) {
-          console.error(error)
-          return res.status(500).json({ message: error.sqlMessage, error })
+          return res.status(500).json({ message: error.message })
         }
 
         res.status(201).json({ message: '게시글을 업로드 하였습니다.' })
       })
     } catch (error) {
-      console.error(error)
       res.status(500).json({ message: '게시글 업로드에 실패했습니다.' })
     }
   })
@@ -126,10 +124,9 @@ export const posts = (req, res) => {
   // 총 게시글 수 가져오기
   conn.query(totalCountQuery, (countError, countResult) => {
     if (countError) {
-      console.error(countError)
       return res.status(500).json({
         message: '총 게시글 수 조회에 실패했습니다.',
-        error: countError,
+        error: countError.message,
       })
     }
 
@@ -138,10 +135,10 @@ export const posts = (req, res) => {
     // 페이지네이션을 포함한 게시글 데이터 가져오기
     conn.query(postQuery, [limit, offset], (error, results) => {
       if (error) {
-        console.error(error)
-        return res
-          .status(500)
-          .json({ message: '게시글 정보를 불러오지 못했습니다.', error })
+        return res.status(500).json({
+          message: '게시글 정보를 불러오지 못했습니다.',
+          error: error.message,
+        })
       }
 
       if (results.length === 0) {
@@ -200,10 +197,10 @@ export const postDetail = (req, res) => {
 
   conn.query(postQuery, [postId], (error, results) => {
     if (error) {
-      console.error('게시글 상세 조회 중 오류:', error)
-      return res
-        .status(500)
-        .json({ message: '게시글 조회 중 오류가 발생했습니다.', error })
+      return res.status(500).json({
+        message: '게시글 조회 중 오류가 발생했습니다.',
+        error: error.message,
+      })
     }
 
     if (results.length > 0) {
@@ -227,10 +224,9 @@ export const postDetail = (req, res) => {
       const updateViewsQuery = 'UPDATE POST SET views = views + 1 WHERE id = ?'
       conn.query(updateViewsQuery, [postId], (updateError) => {
         if (updateError) {
-          console.error('조회수 업데이트 중 오류:', updateError)
           return res.status(500).json({
             message: '조회수 업데이트 중 오류가 발생했습니다.',
-            error: updateError,
+            error: updateError.message,
           })
         }
 
@@ -275,10 +271,9 @@ export const editPost = (req, res) => {
 
       conn.query(selectQuery, [postId], (selectError, selectResults) => {
         if (selectError) {
-          console.error('게시글 조회 중 오류:', selectError)
           return res.status(500).json({
             message: '게시글 조회에 실패했습니다.',
-            error: selectError.sqlMessage,
+            error: selectError.message,
           })
         }
 
@@ -303,10 +298,9 @@ export const editPost = (req, res) => {
       [title, content, updated_at, postImg, postId],
       (updateError, results) => {
         if (updateError) {
-          console.error('게시글 수정 중 오류:', updateError)
           return res.status(500).json({
             message: '게시글 수정에 실패했습니다.',
-            error: updateError.sqlMessage,
+            error: updateError.message,
           })
         }
 
@@ -330,8 +324,7 @@ export const deletePost = (req, res) => {
 
   conn.query(deleteQuery, [postId], (error, result) => {
     if (error) {
-      console.error(error)
-      return res.status(500).json({ message: error.sqlMessage, error })
+      return res.status(500).json({ message: error.message })
     }
 
     // affectedRows가 0이면 게시글이 존재하지 않음
@@ -360,7 +353,6 @@ export const updateLikes = (req, res) => {
   // 데이터베이스 업데이트
   conn.query(updateQuery, [changeValue, postId], (error, updateResult) => {
     if (error) {
-      console.error('좋아요 업데이트 실패:', error)
       return res
         .status(500)
         .json({ message: '좋아요 업데이트에 실패했습니다.' })
@@ -373,7 +365,6 @@ export const updateLikes = (req, res) => {
     // 업데이트 후 최신 데이터 가져오기
     conn.query(selectQuery, [postId], (selectError, selectResult) => {
       if (selectError) {
-        console.error('좋아요 조회 실패:', selectError)
         return res
           .status(500)
           .json({ message: '업데이트된 데이터를 조회할 수 없습니다.' })
