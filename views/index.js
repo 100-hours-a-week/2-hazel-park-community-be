@@ -10,6 +10,7 @@ import cookieParser from 'cookie-parser'
 import session from 'express-session'
 import dotenv from 'dotenv'
 import path from 'path'
+import helmet from 'helmet'
 
 dotenv.config({ path: '../.env' })
 const app = express()
@@ -55,6 +56,7 @@ app.use(
   }),
 )
 
+app.use(helmet())
 app.use(bodyParser.json({ limit: '50mb' }))
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }))
 
