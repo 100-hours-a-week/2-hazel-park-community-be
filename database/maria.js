@@ -19,15 +19,6 @@ conn.getConnection((err, conn) => {
     console.error('MySQL 연결 실패:', err)
   } else {
     console.log('MySQL에 성공적으로 연결되었습니다.')
-    // 예시: 쿼리 실행
-    conn.query('SELECT * FROM POST', (queryErr, results) => {
-      if (queryErr) {
-        console.error('쿼리 실행 오류:', queryErr)
-      } else {
-        console.log('쿼리 결과:', results)
-      }
-      conn.release() // 연결 종료
-    })
   }
 })
 

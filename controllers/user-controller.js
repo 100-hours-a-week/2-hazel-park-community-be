@@ -26,18 +26,15 @@ export const checkEmail = (req, res) => {
   const checkEmailQuery = 'SELECT * FROM USER WHERE email = ?'
   conn.query(checkEmailQuery, [email], (error, results) => {
     if (error) {
-      console.error('데이터베이스 에러:', error)
-      return res.status(500).json({ message: '데이터베이스 에러', error })
+      return res.status(500).json({ message: '데이터베이스 에러' })
     }
 
     if (results.length > 0) {
-      console.log('이메일 중복 확인: 이미 존재하는 이메일')
       return res
         .status(400)
         .json({ code: 400, message: '이미 존재하는 이메일입니다.' })
     }
 
-    console.log('이메일 중복 확인: 사용 가능한 이메일')
     return res
       .status(200)
       .json({ code: 200, message: '사용 가능한 이메일입니다.' })
@@ -46,7 +43,6 @@ export const checkEmail = (req, res) => {
 
 export const checkNickname = (req, res) => {
   const { nickname } = req.body
-  console.log('요청 바디 확인', nickname)
 
   if (!nickname) {
     return res.status(400).json({ message: '닉네임을 입력해주세요.' })
@@ -55,18 +51,15 @@ export const checkNickname = (req, res) => {
   const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
   conn.query(checkNicknameQuery, [nickname], (error, results) => {
     if (error) {
-      console.error('데이터베이스 에러:', error)
-      return res.status(500).json({ message: '데이터베이스 에러', error })
+      return res.status(500).json({ message: '데이터베이스 에러' })
     }
 
     if (results.length > 0) {
-      console.log('닉네임 중복 확인: 중복된 닉네임')
       return res
         .status(400)
         .json({ code: 400, message: '중복된 닉네임 입니다.' })
     }
 
-    console.log('닉네임 중복 확인: 사용 가능한 닉네임')
     return res
       .status(200)
       .json({ code: 200, message: '사용 가능한 닉네임입니다.' })
@@ -91,29 +84,24 @@ export const registerUser = (req, res) => {
     }
 
     const { email, password, nickname } = req.body
-    console.log('요청 바디 확인')
 
     // 이메일 중복 검사
     const checkEmailQuery = 'SELECT * FROM USER WHERE email = ?'
     conn.query(checkEmailQuery, [email], (error, results) => {
-      if (error)
-        return res.status(500).json({ message: '데이터베이스 에러', error })
+      if (error) return res.status(500).json({ message: '데이터베이스 에러' })
 
       if (results.length > 0) {
         return res.status(400).json({ message: '이미 존재하는 이메일입니다.' })
       }
-      console.log('이메일 확인')
 
       // 닉네임 중복 검사
       const checkNicknameQuery = 'SELECT * FROM USER WHERE name = ?'
       conn.query(checkNicknameQuery, [nickname], async (error, results) => {
-        if (error)
-          return res.status(500).json({ message: '데이터베이스 에러', error })
+        if (error) return res.status(500).json({ message: '데이터베이스 에러' })
 
         if (results.length > 0) {
           return res.status(400).json({ message: '중복된 닉네임 입니다.' })
         }
-        console.log('닉네임 확인')
 
         // 비밀번호 암호화
         const hashedPw = bcrypt.hashSync(password, 10)
@@ -135,31 +123,22 @@ export const registerUser = (req, res) => {
           try {
             profilePic = await uploadImageToS3(req.file) // 비동기 처리
           } catch (uploadError) {
-            console.error('파일 업로드 에러:', uploadError)
+            console.error('파일 업로드 에러:', uploadError.message)
             return res
               .status(500)
               .json({ message: '이미지 업로드에 실패했습니다.' })
           }
         }
-        console.log('파일 확인: ', profilePic)
-
-        console.log('실행된 SQL:', insertUserQuery)
-        console.log('전달된 값:', [
-          email,
-          hashedPw,
-          nickname,
-          profilePic || null,
-        ])
 
         conn.query(
           insertUserQuery,
           [email, hashedPw, nickname, profilePic || null],
           (error) => {
             if (error) {
-              console.error('회원가입 에러:', error.sqlMessage)
+              console.error('회원가입 에러:', error.message)
               return res
                 .status(500)
-                .json({ message: '회원가입에 실패했습니다.', error })
+                .json({ message: '회원가입에 실패했습니다.' })
             }
             res.status(201).json({ message: '회원가입이 완료되었습니다.' })
           },
@@ -177,8 +156,7 @@ export const loginUser = (req, res) => {
   const checkUserInfo = 'SELECT * FROM USER WHERE email = ?'
   conn.query(checkUserInfo, [email], (error, result) => {
     if (error) {
-      console.log(error)
-      return res.status(500).json({ message: error.sqlMessage, error })
+      return res.status(500).json({ message: error.message })
     }
 
     // 유저가 존재하는 경우
@@ -248,10 +226,10 @@ export const userInfo = (req, res) => {
 
     conn.query(selectQuery, [email], async (selectError, selectResults) => {
       if (selectError) {
-        console.error('유저 조회 중 오류:', selectError)
+        console.error('유저 조회 중 오류:', selectError.message)
         return res.status(500).json({
           message: '유저 조회에 실패했습니다.',
-          error: selectError.sqlMessage,
+          error: selectError.message,
         })
       }
 
@@ -267,10 +245,9 @@ export const userInfo = (req, res) => {
         try {
           userImg = await uploadImageToS3(req.file) // 새로운 이미지 URL
         } catch (uploadError) {
-          console.error('이미지 업로드 중 오류:', uploadError)
           return res.status(500).json({
             message: '이미지 업로드에 실패했습니다.',
-            error: uploadError,
+            error: uploadError.message,
           })
         }
       }
@@ -285,7 +262,6 @@ export const userInfo = (req, res) => {
         const nicknameCheck = await new Promise((resolve) => {
           conn.query(checkNicknameQuery, [nickname], (checkError, results) => {
             if (checkError) {
-              console.error('닉네임 중복 체크 중 오류:', checkError)
               resolve(false)
             }
             resolve(results.length === 0)
@@ -315,10 +291,10 @@ export const userInfo = (req, res) => {
       // 업데이트 실행
       conn.query(updateQuery, queryParams, (updateError, result) => {
         if (updateError) {
-          console.error('사용자 정보 업데이트 중 오류:', updateError)
+          console.error('사용자 정보 업데이트 중 오류:', updateError.message)
           return res.status(500).json({
             message: '사용자 정보 업데이트에 실패했습니다.',
-            error: updateError.sqlMessage,
+            error: updateError.message,
           })
         }
 
@@ -349,8 +325,7 @@ export const userPw = (req, res) => {
   const existingUsers = 'SELECT * FROM USER WHERE email = ?'
   conn.query(existingUsers, [email], (error, result) => {
     if (error) {
-      console.log(error)
-      return res.status(500).json({ message: error.sqlMessage, error })
+      return res.status(500).json({ message: error.message })
     }
 
     if (result.length > 0) {
@@ -360,8 +335,7 @@ export const userPw = (req, res) => {
         [bcrypt.hashSync(password, 10), email],
         (error, result) => {
           if (error) {
-            console.log(error)
-            return res.status(500).json({ message: error.sqlMessage, error })
+            return res.status(500).json({ message: error.message })
           }
           if (result.affectedRows === 0) {
             return res
@@ -384,8 +358,7 @@ export const deleteUser = (req, res) => {
 
   conn.query(deleteQuery, [email], (error, result) => {
     if (error) {
-      console.error(error)
-      return res.status(500).json({ message: error.sqlMessage, error })
+      return res.status(500).json({ message: error.message })
     }
 
     // affectedRows가 0이면 사용자가 존재하지 않음
@@ -396,7 +369,6 @@ export const deleteUser = (req, res) => {
     // 세션 제거
     req.session.destroy((err) => {
       if (err) {
-        console.error('세션 제거 중 오류:', err)
         return res
           .status(500)
           .json({ message: '회원은 삭제되었으나 세션 제거에 실패했습니다.' })
