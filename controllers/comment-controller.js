@@ -41,7 +41,7 @@ export const comments = (req, res) => {
       console.error(error)
       return res
         .status(500)
-        .json({ message: '댓글 조회에 실패했습니다.', error })
+        .json({ message: '댓글 조회에 실패했습니다.', error: error.message })
     }
 
     if (results.length === 0) {
@@ -77,7 +77,7 @@ export const uploadComment = (req, res) => {
     const checkPostQuery = 'SELECT id FROM POST WHERE id = ?'
     conn.query(checkPostQuery, [postId], (checkError, checkResults) => {
       if (checkError) {
-        console.error('Post ID 확인 중 오류:', checkError)
+        console.error('Post ID 확인 중 오류:', checkError.message)
         return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
       }
 
@@ -97,7 +97,7 @@ export const uploadComment = (req, res) => {
         [postId, writer, updated_at, content],
         (insertError, insertResults) => {
           if (insertError) {
-            console.error('댓글 등록 중 오류:', insertError)
+            console.error('댓글 등록 중 오류:', insertError.message)
             return res
               .status(500)
               .json({ message: '댓글 등록에 실패하였습니다.' })
@@ -113,7 +113,7 @@ export const uploadComment = (req, res) => {
         `
           conn.query(updatePostQuery, [postId], (updateError) => {
             if (updateError) {
-              console.error('댓글 수 업데이트 중 오류:', updateError)
+              console.error('댓글 수 업데이트 중 오류:', updateError.message)
               return res
                 .status(500)
                 .json({ message: '댓글 등록에 실패하였습니다.' })
@@ -141,7 +141,7 @@ export const uploadComment = (req, res) => {
               [newCommentId, postId],
               (selectError, rows) => {
                 if (selectError) {
-                  console.error('댓글 조회 중 오류:', selectError)
+                  console.error('댓글 조회 중 오류:', selectError.message)
                   return res
                     .status(500)
                     .json({ message: '댓글 조회에 실패하였습니다.' })
@@ -162,7 +162,7 @@ export const uploadComment = (req, res) => {
       )
     })
   } catch (error) {
-    console.error('댓글 등록 중 예외 발생:', error)
+    console.error('댓글 등록 중 예외 발생:', error.message)
     return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
   }
 }
@@ -177,7 +177,7 @@ export const editComment = (req, res) => {
     const checkPostQuery = 'SELECT id FROM POST WHERE id = ?'
     conn.query(checkPostQuery, [postId], (checkError, checkResults) => {
       if (checkError) {
-        console.error('Post ID 확인 중 오류:', checkError)
+        console.error('Post ID 확인 중 오류:', checkError.message)
         return res.status(500).json({ message: '댓글 수정을 실패하였습니다.' })
       }
 
@@ -195,7 +195,7 @@ export const editComment = (req, res) => {
         [commentId, postId],
         (commentError, commentResults) => {
           if (commentError) {
-            console.error('댓글 확인 중 오류:', commentError)
+            console.error('댓글 확인 중 오류:', commentError.message)
             return res
               .status(500)
               .json({ message: '댓글 수정을 실패하였습니다.' })
@@ -218,7 +218,7 @@ export const editComment = (req, res) => {
             [content, updated_at, commentId, postId],
             (updateError) => {
               if (updateError) {
-                console.error('댓글 수정 중 오류:', updateError)
+                console.error('댓글 수정 중 오류:', updateError.message)
                 return res
                   .status(500)
                   .json({ message: '댓글 수정을 실패하였습니다.' })
@@ -246,7 +246,10 @@ export const editComment = (req, res) => {
                 [commentId, postId],
                 (selectError, rows) => {
                   if (selectError) {
-                    console.error('수정된 댓글 조회 중 오류:', selectError)
+                    console.error(
+                      '수정된 댓글 조회 중 오류:',
+                      selectError.message,
+                    )
                     return res
                       .status(500)
                       .json({ message: '수정된 댓글 조회에 실패하였습니다.' })
@@ -267,7 +270,6 @@ export const editComment = (req, res) => {
       )
     })
   } catch (error) {
-    console.error('댓글 수정 중 예외 발생:', error)
     return res.status(500).json({ message: '댓글 정보를 불러오지 못했습니다.' })
   }
 }
@@ -281,8 +283,7 @@ export const deleteComment = (req, res) => {
 
   conn.query(deleteQuery, [commentId, postId], (error, result) => {
     if (error) {
-      console.error(error)
-      return res.status(500).json({ message: error.sqlMessage, error })
+      return res.status(500).json({ message: error.message })
     }
 
     // affectedRows가 0이면 댓글이 존재하지 않음
@@ -298,7 +299,6 @@ export const deleteComment = (req, res) => {
   `
     conn.query(updatePostQuery, [postId], (updateError) => {
       if (updateError) {
-        console.error('댓글 수 업데이트 중 오류:', updateError)
         return res.status(500).json({ message: '댓글 등록에 실패하였습니다.' })
       }
     })
