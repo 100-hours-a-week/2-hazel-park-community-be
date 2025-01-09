@@ -112,7 +112,8 @@ export const posts = (req, res) => {
       p.likes AS post_likes,
       p.views AS post_views,
       p.comments AS post_comments,
-      u.img AS post_img
+      p.img AS post_img,
+      u.img AS user_img
     FROM POST p
     LEFT JOIN USER u ON p.user_email = u.email
     ORDER BY p.id DESC
@@ -159,10 +160,15 @@ export const posts = (req, res) => {
         likes: post.post_likes,
         views: post.post_views,
         comments: post.post_comments,
-        img: post.post_img
+        post_img: post.post_img
           ? post.post_img.startsWith('http') // S3 URL인지 확인
             ? post.post_img // 이미 S3 URL인 경우 그대로 반환
             : loadProfileImg(`../uploads/${post.post_img}`) // 로컬 파일인 경우
+          : null,
+        img: post.user_img
+          ? post.user_img.startsWith('http') // S3 URL인지 확인
+            ? post.user_img // 이미 S3 URL인 경우 그대로 반환
+            : loadProfileImg(`../uploads/${post.user_img}`) // 로컬 파일인 경우
           : null,
       }))
 
