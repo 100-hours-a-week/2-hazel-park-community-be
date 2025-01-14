@@ -11,6 +11,7 @@ import session from 'express-session'
 import dotenv from 'dotenv'
 import path from 'path'
 import helmet from 'helmet'
+import rateLimit from 'express-rate-limit'
 
 dotenv.config({ path: '../.env' })
 const app = express()
@@ -55,6 +56,14 @@ app.use(
     },
   }),
 )
+
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   message: 'Too many requests from this IP, please try again after 15 minutes.',
+// })
+
+// app.use(limiter)
 
 app.use(helmet())
 app.use(bodyParser.json({ limit: '50mb' }))
