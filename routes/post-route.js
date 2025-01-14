@@ -17,15 +17,15 @@ import {
 const router = express.Router()
 
 const postUploadLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
+  windowMs: 1 * 60 * 1000,
   max: 10, // 최대 10번 요청
   message: 'Too many posts created. Please try again later.',
 })
 router.post('/', postUploadLimiter, uploadPost)
 
 const commentLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 50, // 최대 50번 요청
+  windowMs: 1 * 60 * 1000,
+  max: 10,
   message: 'Too many comments. Please try again later.',
 })
 router.post('/:postId/comment', commentLimiter, uploadComment)

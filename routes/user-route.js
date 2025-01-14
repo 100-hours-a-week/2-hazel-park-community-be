@@ -15,27 +15,27 @@ import {
 const router = express.Router()
 
 const emailCheckLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 10, // 최대 10번 요청
+  windowMs: 1 * 60 * 1000,
+  max: 15,
   message: 'Too many email checks. Please try again later.',
 })
 
 const nicknameCheckLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 10, // 최대 10번 요청
+  windowMs: 1 * 60 * 1000,
+  max: 15,
   message: 'Too many nickname checks. Please try again later.',
 })
 
 const registerLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5, // 최대 5번 요청
-  keyGenerator: (req) => req.body.email || req.ip, // 이메일 또는 IP 기반
+  windowMs: 1 * 60 * 1000,
+  max: 5,
+  keyGenerator: (req) => req.body.email || req.ip,
   message: 'Too many registration attempts. Please try again later.',
 })
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5, // 최대 5번 요청
+  windowMs: 1 * 60 * 1000,
+  max: 10,
   keyGenerator: (req) => req.body.email || req.ip, // 이메일 또는 IP 기반
   message: 'Too many login attempts. Please try again later.',
 })

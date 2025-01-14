@@ -5,8 +5,8 @@ import { loginUser, logoutUser } from '../controllers/user-controller.js'
 const router = express.Router()
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5, // 최대 5번 요청
+  windowMs: 1 * 60 * 1000,
+  max: 10,
   keyGenerator: (req) => req.body.email || req.ip,
   message: 'Too many login attempts. Please try again after 15 minutes.',
 })
