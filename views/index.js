@@ -75,9 +75,20 @@ app.use('/api/posts', postRoutes)
 app.use('/api/comments', commentRoutes)
 
 app.use(
-  '/html',
-  express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/html')),
+  express.static(
+    '/home/ubuntu/2-hazel-park-community-fe/html',
+
+    {
+      extensions: ['html', 'htm'],
+    },
+  ),
 )
+
+// app.use(
+//   '/html',
+//   express.static(path.join('/home/ubuntu/2-hazel-park-community-fe/html')),
+// )
+
 app.use(
   '/components',
   express.static(
