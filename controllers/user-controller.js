@@ -383,6 +383,7 @@ export const deleteUser = (req, res) => {
   })
 }
 
+// 로그아웃
 export const logoutUser = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
@@ -397,4 +398,64 @@ export const logoutUser = (req, res) => {
     // 로그아웃 모두 정상. 성공 응답 전송
     res.status(200).json({ message: '로그아웃 성공' })
   })
+}
+
+// 검색
+export const search = (req, res) => {
+  try {
+    const { keyword } = req.body
+    console.log('Search keyword:', keyword)
+
+    if (!keyword) {
+      return res.status(400).json({ message: '검색어를 입력해주세요.' })
+    }
+
+    const searchKeyword = `%${keyword}%`
+    const sql = `
+      SELECT 
+        'user' AS type, 
+        name, 
+        img,
+        email AS id
+      FROM USER 
+      WHERE name LIKE ? OR email LIKE ? 
+
+      UNION 
+
+      SELECT 
+        'post' AS type, 
+        title AS name,
+        contents AS contents ,
+        id AS id
+      FROM POST 
+      WHERE title LIKE ? OR contents LIKE ?
+    `
+
+    // Corrected query execution with proper callback
+    conn.query(
+      sql,
+      [searchKeyword, searchKeyword, searchKeyword, searchKeyword],
+      (error, results) => {
+        if (error) {
+          console.error('Search query error:', error)
+          return res.status(500).json({
+            message: '검색 중 오류가 발생했습니다.',
+            error: error.message,
+          })
+        }
+
+        console.log('Search results:', results)
+        res.json({
+          message: '검색이 완료되었습니다.',
+          results: results,
+        })
+      },
+    )
+  } catch (error) {
+    console.error('Search function error:', error)
+    res.status(500).json({
+      message: '서버 오류가 발생했습니다.',
+      error: error.message,
+    })
+  }
 }
