@@ -10,6 +10,7 @@ import {
   userPw,
   deleteUser,
   logoutUser,
+  search,
 } from '../controllers/user-controller.js'
 
 const router = express.Router()
@@ -49,5 +50,6 @@ router.post('/logout', logoutUser) // 로그아웃은 제한 불필요
 router.patch('/info', userInfo)
 router.patch('/password', userPw)
 router.delete('/:email', deleteUser)
+router.post('/search', search)
 
 export default router
