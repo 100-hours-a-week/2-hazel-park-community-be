@@ -17,7 +17,6 @@ const upload = multer({
 
 export const checkEmail = (req, res) => {
   const { email } = req.body
-  console.log('요청 바디 확인', email)
 
   if (!email) {
     return res.status(400).json({ message: '이메일을 입력해주세요.' })
@@ -404,7 +403,6 @@ export const logoutUser = (req, res) => {
 export const search = (req, res) => {
   try {
     const { keyword } = req.body
-    console.log('Search keyword:', keyword)
 
     if (!keyword) {
       return res.status(400).json({ message: '검색어를 입력해주세요.' })
@@ -444,7 +442,6 @@ export const search = (req, res) => {
           })
         }
 
-        console.log('Search results:', results)
         res.json({
           message: '검색이 완료되었습니다.',
           results: results,
