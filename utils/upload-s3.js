@@ -11,7 +11,6 @@ const s3 = new AWS.S3({
 })
 
 export const uploadImageToS3 = async (file) => {
-  console.log(file) // 파일 정보 로그 확인
 
   const params = {
     Bucket: 'hazel2-community-s3', // S3 버킷 이름
