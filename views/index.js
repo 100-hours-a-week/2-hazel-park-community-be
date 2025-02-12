@@ -23,10 +23,13 @@ app.use(
     origin: [
       'http://52.79.154.1',
       'http://localhost',
+      'http://localhost:5173',
       'http://127.0.0.1:5500',
+      'http://127.0.0.1:5173',
       'http://blue-v2-env.eba-vathmjjq.ap-northeast-2.elasticbeanstalk.com',
       'http://green-v2-env.ap-northeast-2.elasticbeanstalk.com',
       'http://blue-v2-env.ap-northeast-2.elasticbeanstalk.com',
+      'https://2-hazel-park-community-react.vercel.app/',
     ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
